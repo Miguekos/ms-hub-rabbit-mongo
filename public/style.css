@@ -1,0 +1,71 @@
+#container>div {
+    display: flex;
+    /* font-family: "Courier New", "Lucida Console", monospace; */
+}
+
+#container>div>div {
+    /* width: 50px; */
+    /* padding-top: 5px; */
+    padding-top: 0.5%;
+    padding-bottom: 0.5%;
+    /* height: 45px; */
+    /* background: linear-gradient(-45deg, #788cff, #b4c8ff); */
+}
+
+#space-around {
+    justify-content: space-around;
+}
+
+.my-sticky-header-table {
+    /* height or max-height is important */
+    max-height: 87vh
+    /* this is when the loading indicator appears */
+}
+
+.my-sticky-header-table .q-table__top,
+.my-sticky-header-table .q-table__bottom,
+.my-sticky-header-table thead tr:first-child th {
+    /* bg color is important for th; just specify one */
+    background-color: #c1f4cd;
+}
+
+.my-sticky-header-table thead tr th {
+    position: sticky;
+    z-index: 1;
+}
+
+.my-sticky-header-table thead tr:first-child th {
+    top: 0;
+}
+
+.my-sticky-header-table.q-table--loading thead tr:last-child th {
+    /* height of all previous header rows */
+    top: 48px;
+}
+
+.my-sticky-header-table2 {
+    /* height or max-height is important */
+    max-height: 81vh
+    /* this is when the loading indicator appears */
+}
+
+.my-sticky-header-table2 .q-table__top,
+.my-sticky-header-table2 .q-table__bottom,
+.my-sticky-header-table2 thead tr:first-child th {
+    /* bg color is important for th; just specify one */
+    background-color: #c1f4cd;
+}
+
+.my-sticky-header-table2 thead tr th {
+    position: sticky;
+    z-index: 1;
+}
+
+.my-sticky-header-table2 thead tr:first-child th {
+    top: 0;
+}
+
+.my-sticky-header-table2.q-table--loading thead tr:last-child th {
+    /* height of all previous header rows */
+    top: 48px;
+}

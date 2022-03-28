@@ -1,0 +1,63 @@
+version: '3'
+services:
+  app_util:
+    build:
+      context: .
+    # ports:
+      # - 3000:3000
+      # - 3346:3346
+    expose:
+      - "3346"
+      # - "3000"
+    hostname: utils
+    restart: always
+    environment:
+      - TZ=America/Lima
+      - VIRTUAL_HOST=utils.apps.com.pe,www.utils.apps.com.pe
+      - LETSENCRYPT_HOST=utils.apps.com.pe,www.utils.apps.com.pe
+      - LETSENCRYPT_EMAIL=miguekos1233@gmail.com
+      - VIRTUAL_PORT=3346
+      # - VIRTUAL_PORT=3000
+    links:
+      - mongodb
+      - rabbitmq
+    depends_on:
+      - mongodb
+      - rabbitmq
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+
+    command: pm2-runtime server.config.js --env production
+
+  rabbitmq:
+    build:
+      dockerfile: rabbitMQ.DockerFile
+      context: .
+    restart: always
+    ports:
+      - 5677:5672
+      - 15677:15672
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_DEFAULT_VHOST=/
+
+  mongodb:
+    image: mongo:latest
+    restart: always
+    hostname: mongo_utils
+    container_name: mongo_utils
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=changethis
+    volumes:
+      - /usr/local/volume/mongo_utils/mongo:/data/db
+    ports:
+      - 27019:27017
+
+
+networks:
+  default:
+    external:
+      name: nginx-proxy_default
