@@ -33,16 +33,16 @@ app.get('/', (req, res) => {
 });
 
 // CONTROLLERS
-const { consumer_rabbitMQ } = require('./api/controllers/consumer_rabbitMQ')
+const { consumerOrderAdd, consumerOrderMDB, consumerOrderStatus } = require('./api/controllers/consumers')
 
 const prefix = `api`
 
-app.use(`/${prefix}/`, require('./api/routes/datatest'));
-app.use(`/${prefix}/ordenes`, require('./api/routes/ordenes'));
+app.use(`/${prefix}/`, require('./api/routes/general'));
 
 // load queue
-consumer_rabbitMQ()
-
+consumerOrderAdd()
+consumerOrderMDB()
+consumerOrderStatus()
 
 // REGISTER HOST AND PORT
 app.disable('x-powered-by');

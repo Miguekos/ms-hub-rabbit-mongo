@@ -20,8 +20,8 @@ exports.CLEAN = async (esquema) => {
         });
         return "Collection deleted";
     } catch (error) {
-        console.log('Falló editar mongo');
         console.log(error.message);
+        return false;
     }
 };
 
@@ -46,8 +46,8 @@ exports.UPDATE_ONE = async (esquema, query, data) => {
         client.close();
         return result;
     } catch (error) {
-        console.log('Falló editar mongo');
         console.log(error.message);
+        return false;
     }
 };
 
@@ -68,8 +68,7 @@ exports.INSERT_ONE = async (esquema, data) => {
         client.close();
         return result.insertedId;
     } catch (error) {
-        console.log('her');
-        console.log(error);
+        console.log(error.message);
         return false;
     }
 };
@@ -89,8 +88,8 @@ exports.GET_ONE = async (esquema, query) => {
         client.close();
         return result;
     } catch (error) {
-        console.log('error');
-        console.log(error);
+        console.log(error.message);
+        return false;
     }
 };
 
@@ -107,8 +106,8 @@ exports.GET_ALL = async (esquema, query) => {
         client.close();
         return result;
     } catch (error) {
-        console.log('error');
-        console.log(error);
+        console.log(error.message);
+        return false;
     }
 };
 
@@ -125,8 +124,8 @@ exports.DEL = async (esquema, query) => {
         client.close();
         return result;
     } catch (error) {
-        console.log('error');
-        console.log(error);
+        console.log(error.message);
+        return false;
     }
 };
 
@@ -145,7 +144,7 @@ exports.GET_LOGS = async (esquema) => {
         client.close();
         return result;
     } catch (error) {
-        console.log('error');
-        console.log(error);
+        console.log(error.message);
+        return false;
     }
 };
