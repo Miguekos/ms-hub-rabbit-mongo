@@ -17,7 +17,6 @@ const notify = async (req, res = response) => {
         console.log('Tipo de proceso:',typeProcess)
         switch (typeProcess) {
             case 1:
-            console.log('ORDER')
                 notify = await newOrder(notifyJson);
                 break;
             case 2:

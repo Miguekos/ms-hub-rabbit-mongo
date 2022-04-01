@@ -69,7 +69,7 @@ exports.INSERT_ONE = async (esquema, data) => {
         return result.insertedId;
     } catch (error) {
         console.log(error.message);
-        return false;
+        return {status: false, message: error.message};
     }
 };
 
@@ -89,7 +89,7 @@ exports.GET_ONE = async (esquema, query) => {
         return result;
     } catch (error) {
         console.log(error.message);
-        return false;
+        return {status: false, message: error.message};
     }
 };
 
@@ -107,7 +107,7 @@ exports.GET_ALL = async (esquema, query) => {
         return result;
     } catch (error) {
         console.log(error.message);
-        return false;
+        return {status: false, message: error.message};
     }
 };
 
@@ -125,7 +125,7 @@ exports.DEL = async (esquema, query) => {
         return result;
     } catch (error) {
         console.log(error.message);
-        return false;
+        return {status: false, message: error.message};
     }
 };
 
@@ -145,6 +145,6 @@ exports.GET_LOGS = async (esquema) => {
         return result;
     } catch (error) {
         console.log(error.message);
-        return false;
+        return {status: false, message: error.message};
     }
 };

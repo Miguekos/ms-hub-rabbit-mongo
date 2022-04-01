@@ -33,3 +33,22 @@ exports.GET_ORDER = async idOrder => {
         return error.message;
     }
 };
+
+exports.ADD_ORDER = async v => {
+    try {
+        console.log('AXIOS ADD_ORDER')
+        const { data } = await axios({
+            method: 'PUT',
+            baseURL: 'https://api.mintsoft.co.uk',
+            url: `/api/Order?APIKey=${apiKey}`,
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            data: v
+        })
+        return data;
+    } catch (error) {
+        console.log(error.message);
+        return error.message;
+    }
+};

@@ -18,11 +18,89 @@ const consumerOrderAdd = async () => {
 
             ch.consume(q, async function (msg) {
                 try {
-                    console.log('LOGICA DE REGISTRO DE ORDER')
+                    console.log('* LOGICA DE REGISTRO DE ORDER')
                     const item = JSON.parse(msg.content.toString());
-                    console.log(item);
+                    console.log('DeliveryOrderId: ',item.DeliveryOrderId);
 
-                    await publishRabbitMq('ex_order_mdb', '', JSON.stringify(item))
+                    var data = {
+                        "OrderItems": [
+                          {
+                            "SKU": "002-003-0006-gra050",
+                            "ProductId": 126,
+                            "Quantity": 12,
+                            "Details": "TEST - TEST",
+                            "UnitPrice": 0,
+                            "UnitPriceVat": 0,
+                            "Discount": 0,
+                            "OrderItemNameValues": [
+                              {
+                                "Name": "BUNDLE-ID",
+                                "Value": "3024;1;a34f4bf9-5666-4b01-a3b8-5e45acae7255"
+                              }
+                            ],
+                            "WarehouseId": 3,
+                            "RequestedSerialNo": ""
+                          }
+                        ],
+                        "OrderNameValues": [
+                          {
+                            "OrderId": 1283,
+                            "Name": "SourceCourierServiceName",
+                            "Value": "dokan_table_rate_shipping:Tabla de Tarifas",
+                            "ID": 811,
+                            "LastUpdated": "2022-03-19T23:15:46.8858258",
+                            "LastUpdatedByUser": "SYSTEM-WOOCOMMERCE"
+                          }
+                        ],
+                        "OrderNumber": item.DeliveryOrderId,
+                        "ExternalOrderReference": "",
+                        "Title": "",
+                        "CompanyName": "",
+                        "FirstName": "MIguel Angel TEST",
+                        "LastName": "Rdriguez TEST",
+                        "Address1": "Los Olivos -TEST",
+                        "Address2": "",
+                        "Address3": "",
+                        "Town": "MAGDALENA DEL MAR",
+                        "County": "LIMA",
+                        "PostCode": ".",
+                        "Country": "LIMA",
+                        "CountryId": 399,
+                        "Email": "miguekos1233@gmail.com",
+                        "Phone": "965778450",
+                        "Mobile": "",
+                        "CourierService": "Next cod",
+                        "CourierServiceTypeId": 10,
+                        "Channel": "TEST",
+                        "ChannelId": 13,
+                        "Warehouse": "",
+                        "WarehouseId": 3,
+                        "Currency": "",
+                        "CurrencyId": 27,
+                        "DeliveryDate": "2022-03-28T01:15:02.257Z",
+                        "DespatchDate": "2022-03-28T01:15:02.257Z",
+                        "RequiredDeliveryDate": "2022-03-28T01:15:02.257Z",
+                        "RequiredDespatchDate": "2022-03-28T01:15:02.257Z",
+                        "Comments": "TEST",
+                        "DeliveryNotes": "TEST",
+                        "GiftMessages": "TEST",
+                        "VATNumber": "string",
+                        "EORINumber": "string",
+                        "PIDNumber": "string",
+                        "IOSSNumber": "string",
+                        "OrderValue": 0,
+                        "ShippingTotalExVat": 0,
+                        "ShippingTotalVat": 0,
+                        "DiscountTotalExVat": 0,
+                        "DiscountTotalVat": 0,
+                        "TotalVat": 0,
+                        "ClientId": 5,
+                        "NumberOfParcels": 0
+                    };
+                    const order = await apis.ADD_ORDER(data)
+                    console.log('Rpta IDOrder:', order[0].OrderId)
+                    const jsonMQ = {...item, ...data, ...order[0], ID:order[0].OrderId}
+                    await publishRabbitMq('ex_order_mdb', '', JSON.stringify(jsonMQ))
                     ch.ack(msg);
                 } catch (error) {
                     console.log("Error de cola: ", error.message);
@@ -49,17 +127,16 @@ const consumerOrderMDB = async () => {
 
             ch.consume(q, async function (msg) {
                 try {
-                    console.log('LOGICA DE MDB DE ORDER')
+                    console.log('* LOGICA DE MDB DE ORDER')
                     const item = JSON.parse(msg.content.toString());
-                    //console.log(item);
-                    const IDOrder = item.ID
+                    const DeliveryOrderId = item.DeliveryOrderId
                     const IDstatus = item.OrderStatusId
-                    console.log('IDOrder',IDOrder)
+                    console.log('DeliveryOrderId',DeliveryOrderId)
                     console.log('IDstatus',IDstatus)
-                    const mdb = await clienteMongo.UPDATE_ONE(esquema, {ID:IDOrder}, item) 
+                    const mdb = await clienteMongo.UPDATE_ONE(esquema, {DeliveryOrderId: DeliveryOrderId}, item) 
                     console.log(mdb)
                     switch (IDstatus) {
-                        //case 1: // NEW PRUEBA
+                        case 9: // ONBACKORDER
                         case 3: // CANCELLED
                         case 4: // DESPATCHED
                             console.log('ORDER FINISH')
@@ -98,13 +175,13 @@ const consumerOrderStatus = async () => {
 
             ch.consume(q, async function (msg) {
                 try {
-                    console.log('LOGICA DE CONSULTA DE ESTADO')
+                    console.log('* LOGICA DE CONSULTA DE ESTADO')
                     const item = JSON.parse(msg.content.toString());
                     //console.log(item);
                     console.log('IDOrder',item.ID)
                     const order = await apis.GET_ORDER(item.ID)
                     const IDstatus = order.OrderStatusId
-                    console.log('IDstatus',IDstatus)
+                    console.log('New IDstatus',IDstatus)
                     const datailStatus = await apis.GET_DETAIL_STATUS(IDstatus)
                     console.log(datailStatus)
                     const jsonMDB = {
