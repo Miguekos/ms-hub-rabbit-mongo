@@ -21,12 +21,22 @@ app.use(express.static(__dirname + '/public'));
 // Load environment variables from .env file, where API keys and passwords are configured.
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
+// Set up Global configuration access
+// dotenv.config();
+
 // Usamos body-parse para revisar el body cuando los request son post
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 // MIDDLEWARE
-app.use(cors());
+// app.use(cors());
+const corsOption = {
+    origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+    exposedHeaders: ['x-auth-token']
+};
+app.use(cors(corsOption));
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname + '/public/index.html'));
@@ -35,9 +45,24 @@ app.get('/', (req, res) => {
 // CONTROLLERS
 const { consumerOrderAdd, consumerOrderMDB, consumerOrderStatus } = require('./api/controllers/consumers')
 
+// profix
 const prefix = `api`
 
+// router
 app.use(`/${prefix}/`, require('./api/routes/general'));
+app.use(`/${prefix}/`, require('./api/routes/user'));
+app.use(`/${prefix}/`, require('./api/routes/auth'));
+
+// error handling
+app.use((err, req, res, next) => {
+    res.status(err.status || 500).send({
+        error: {
+            status: err.status || 500,
+            message: err.message
+        }
+    })
+})
+
 
 // load queue
 consumerOrderAdd()

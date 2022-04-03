@@ -1,4 +1,5 @@
 const mongoClient = require('mongodb').MongoClient;
+const ObjectId = require('mongodb').ObjectID;
 const conexionMongo = process.env.IP_MONGO;
 const dotenv = require("dotenv");
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
@@ -27,7 +28,7 @@ exports.CLEAN = async (esquema) => {
 
 
 //FUNCION DE ACTUALIZAR JSON
-exports.UPDATE_ONE = async (esquema, query, data) => {
+exports.UPDATE_ONE = async (esquema, id, data) => {
     try {
         const client = await mongoClient.connect(conexionMongo, {
             useNewUrlParser: true,
@@ -37,7 +38,7 @@ exports.UPDATE_ONE = async (esquema, query, data) => {
         const db = client.db(`${process.env.DB}`);
         const collection = db.collection(esquema);
 
-        const { result } = await collection.updateOne(query, {
+        const { result } = await collection.updateOne({ _id: ObjectId(id) }, {
             $set: {
                 ...data,
                 _updated: new Date(),
@@ -69,7 +70,7 @@ exports.INSERT_ONE = async (esquema, data) => {
         return result.insertedId;
     } catch (error) {
         console.log(error.message);
-        return {status: false, message: error.message};
+        return { status: false, message: error.message };
     }
 };
 
@@ -89,43 +90,63 @@ exports.GET_ONE = async (esquema, query) => {
         return result;
     } catch (error) {
         console.log(error.message);
-        return {status: false, message: error.message};
+        return { status: false, message: error.message };
     }
 };
 
-exports.GET_ALL = async (esquema, query) => {
+exports.GET_BY_ID = async (esquema, id, projection) => {
     try {
         const client = await mongoClient.connect(conexionMongo, {
             useNewUrlParser: true,
             useUnifiedTopology: true,
         });
-        console.log('query ', query);
+        // console.log('query ', query);
         const db = client.db(`${process.env.DB}`);
         const collection = db.collection(esquema);
-        const result = await collection.find(query).toArray();
+        const result = await collection.find({ _id: ObjectId(id) }).project(projection).toArray();
+        // console.log(result);
+        const output = { codRes: result ? '00' : '01', ...result };
         client.close();
-        return result;
+        return result[0];
     } catch (error) {
         console.log(error.message);
-        return {status: false, message: error.message};
+        return { status: false, message: error.message };
     }
 };
 
-exports.DEL = async (esquema, query) => {
+exports.GET_ALL = async (esquema, query, projection) => {
     try {
         const client = await mongoClient.connect(conexionMongo, {
             useNewUrlParser: true,
             useUnifiedTopology: true,
         });
-        console.log('query ', query);
+        // console.log('query ', query);
         const db = client.db(`${process.env.DB}`);
         const collection = db.collection(esquema);
-        const result = await collection.deleteOne(query);
+        const result = await collection.find(query).project(projection).toArray();
         client.close();
         return result;
     } catch (error) {
         console.log(error.message);
-        return {status: false, message: error.message};
+        return { status: false, message: error.message };
+    }
+};
+
+exports.DEL = async (esquema, id) => {
+    try {
+        const client = await mongoClient.connect(conexionMongo, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+        // console.log('query ', query);
+        const db = client.db(`${process.env.DB}`);
+        const collection = db.collection(esquema);
+        const result = await collection.deleteOne({ _id: ObjectId(id) });
+        client.close();
+        return result;
+    } catch (error) {
+        console.log(error.message);
+        return { status: false, message: error.message };
     }
 };
 
@@ -145,6 +166,6 @@ exports.GET_LOGS = async (esquema) => {
         return result;
     } catch (error) {
         console.log(error.message);
-        return {status: false, message: error.message};
+        return { status: false, message: error.message };
     }
 };
