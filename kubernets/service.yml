@@ -4,14 +4,13 @@ metadata:
   namespace: hub-dev
   name: ms-hub-service
   labels:
-    app: ms-hub-app
+    app: ms-hub-service
 spec:
   type: NodePort
+  selector:
+    app: ms-hub
   ports:
     - port: 3349
       targetPort: 3349
       nodePort: 30349
-      name: "ms-hub-service"
-  selector:
-    name: ms-hub
-    app: ms-hub-app
+      name: http

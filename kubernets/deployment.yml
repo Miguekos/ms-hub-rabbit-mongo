@@ -2,19 +2,18 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: hub-dev
-  name: ms-hub
+  name: ms-hub-app
   labels:
     app: ms-hub-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: ms-hub
+      app: ms-hub
   template:
     metadata:
-      name: ms-hub
       labels:
-        app: ms-hub-app
+        app: ms-hub
     spec:
       containers:
         - name: ms-hub
@@ -23,4 +22,3 @@ spec:
           args: ["server.config.js", "--env", "production"]
           ports:
             - containerPort: 3349
-              name: ms-hub
