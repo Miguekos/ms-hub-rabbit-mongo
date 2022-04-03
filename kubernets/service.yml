@@ -6,7 +6,7 @@ metadata:
   labels:
     app: ms-hub-service
 spec:
-  type: ClusterIp
+  type: ClusterIP
   selector:
     app: ms-hub
   ports:
