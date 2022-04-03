@@ -12,5 +12,4 @@ spec:
   ports:
     - port: 3349
       targetPort: 3349
-      nodePort: 30349
       name: http
