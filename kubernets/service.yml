@@ -13,4 +13,5 @@ spec:
       nodePort: 30349
       name: "ms-hub-service"
   selector:
+    name: ms-hub
     app: ms-hub-app
