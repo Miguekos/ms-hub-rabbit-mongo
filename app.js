@@ -52,6 +52,7 @@ const prefix = `api`
 app.use(`/${prefix}/`, require('./api/routes/general'));
 app.use(`/${prefix}/`, require('./api/routes/user'));
 app.use(`/${prefix}/`, require('./api/routes/auth'));
+app.use(`/${prefix}/`, require('./api/routes/orders'));
 
 // error handling
 app.use((err, req, res, next) => {
