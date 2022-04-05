@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: ms-hub
-          image: miguekos1233/ms-hub-rabbit-mongo:1.0
+          image: miguekos1233/ms-hub-rabbit-mongo:1.1
           command: ["pm2-runtime"]
           args: ["server.config.js", "--env", "production"]
           ports:
