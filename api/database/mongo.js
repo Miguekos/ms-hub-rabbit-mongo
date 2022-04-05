@@ -28,7 +28,7 @@ exports.CLEAN = async (esquema) => {
 
 
 //FUNCION DE ACTUALIZAR JSON
-exports.UPDATE_ONE = async (esquema, id, data) => {
+exports.UPDATE_ONE_BY = async (esquema, id, data) => {
     try {
         const client = await mongoClient.connect(conexionMongo, {
             useNewUrlParser: true,
@@ -39,6 +39,30 @@ exports.UPDATE_ONE = async (esquema, id, data) => {
         const collection = db.collection(esquema);
 
         const { result } = await collection.updateOne({ _id: ObjectId(id) }, {
+            $set: {
+                ...data,
+                _updated: new Date(),
+            },
+        });
+        client.close();
+        return result;
+    } catch (error) {
+        console.log(error.message);
+        return false;
+    }
+};
+
+exports.UPDATE_ONE_DELIVERY = async (esquema, query, data) => {
+    try {
+        const client = await mongoClient.connect(conexionMongo, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+
+        const db = client.db(`${process.env.DB}`);
+        const collection = db.collection(esquema);
+
+        const { result } = await collection.updateOne(query, {
             $set: {
                 ...data,
                 _updated: new Date(),

@@ -133,7 +133,7 @@ const consumerOrderMDB = async () => {
                     const IDstatus = item.OrderStatusId
                     console.log('DeliveryOrderId',DeliveryOrderId)
                     console.log('IDstatus',IDstatus)
-                    const mdb = await clienteMongo.UPDATE_ONE(esquema, {DeliveryOrderId: DeliveryOrderId}, item) 
+                    const mdb = await clienteMongo.UPDATE_ONE_DELIVERY(esquema, {DeliveryOrderId: DeliveryOrderId}, item) 
                     console.log(mdb)
                     switch (IDstatus) {
                         //case 9: // ONBACKORDER

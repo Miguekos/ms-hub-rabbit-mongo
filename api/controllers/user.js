@@ -71,7 +71,7 @@ exports.updateUser = async (req, res) => {
         lastname: lastname,
         email: email
     }
-    const resUpdate = await clienteMongo.UPDATE_ONE('users', id, bodyUpdate)
+    const resUpdate = await clienteMongo.UPDATE_ONE_BY('users', id, bodyUpdate)
     // console.log('resUpdate', resUpdate);
     return res.status(200).json({
         data: `user update ${resUpdate}`,
