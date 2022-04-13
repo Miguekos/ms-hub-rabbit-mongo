@@ -22,17 +22,13 @@ jobs:
   push-image-to-docker-hub: # job name
     runs-on: ubuntu-latest # runner name : (ubuntu latest version)
     steps:
-      - uses: actions/checkout@v2 # first action : checkout source code
-      - name: docker login
-        run: | # log into docker hub account
-          docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-      - name: Get current date # get the date of the build
-        id: date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d--%M-%S')"
-      - name: Build the Docker image # push The image to the docker hub
-        run: docker build . --file Dockerfile --tag $DOCKER_USER/$REPO_NAME:${{ steps.date.outputs.date }}
-      - name: Docker Push
-        run: docker push $DOCKER_USER/$REPO_NAME:${{ steps.date.outputs.date }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v1.1.0
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: ${{ secrets.DOCKER_USER }}/ms-hub-rabbit-mongo
+          tags: ${{ github.sha }}, latest
 
   deploy:
     name: Deploy
@@ -50,10 +46,10 @@ jobs:
 
     - name: Update Kubernetes resources
       env:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_USER: ${{ secrets.DOCKER_USER }}
       run: |
        cd kustomize/base
-       kustomize edit set image ms-hub-rabbit-mongo=$DOCKER_USERNAME/ms-hub-rabbit-mongo:$GITHUB_SHA
+       kustomize edit set image ms-hub-rabbit-mongo=$DOCKER_USER/ms-hub-rabbit-mongo:$GITHUB_SHA
        cat kustomization.yaml
         
     - name: Commit files
