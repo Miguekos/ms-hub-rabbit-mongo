@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: hub-dev
+  name: ms-hub-app
+  labels:
+    app: ms-hub-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-hub
+  template:
+    metadata:
+      labels:
+        app: ms-hub
+    spec:
+      containers:
+        - name: ms-hub
+          image: ms-hub
+          command: ["pm2-runtime"]
+          args: ["server.config.js", "--env", "production"]
+          ports:
+            - containerPort: 3349
