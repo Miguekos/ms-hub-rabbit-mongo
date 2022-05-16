@@ -8,6 +8,7 @@ const notify = async (req, res = response) => {
     try {
         console.log('NOTIFICAR PROCESO')
         console.log('Input', req.body)
+        console.log('CODE:',req.query.code)
         const notifyJson = req.body
         var notify;
         const typeProcess = 
