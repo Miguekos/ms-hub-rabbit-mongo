@@ -193,3 +193,26 @@ exports.GET_LOGS = async (esquema) => {
         return { status: false, message: error.message };
     }
 };
+
+exports.GET_ONE_LATEST_TIME = async (esquema, query) => {
+    try {
+
+        const client = await mongoClient.connect(conexionMongo, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+
+        const db = client.db(`${process.env.DB}`);
+        const collection = db.collection(esquema);
+      const  result  = await collection.find(query).sort({
+        $natural : -1
+      }).limit(1).toArray();
+      //const result = { codRes: JSON.stringify(result) == '[]' ? "01" : "00", data: JSON.stringify(result) == '[]' ? result:result[0] };
+      //console.log(result)
+      // console.log(result[0]);
+      return result;
+    } catch (error) {
+      console.log(error.message);
+      return {codRes: '99', message: error.message}
+    }
+  };
