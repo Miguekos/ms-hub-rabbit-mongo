@@ -20,5 +20,22 @@ spec:
           image: ms-hub-rabbit-mongo
           command: ["pm2-runtime"]
           args: ["server.config.js", "--env", "production"]
+          env:
+            - name: PORT
+              value: "3349"
+            - name: NODEJS_IP
+              value: "0.0.0.0"
+            - name: VERSION
+              value: "v1.0"
+            - name: IP_MONGO
+              value: "mongodb://95.111.235.214:32768"
+            - name: DB
+              value: "multivende_dev"
+            - name: AMQP
+              value: "amqp://guest:guest@207.244.228.209:30301"
+            - name: TOKEN_HEADER_KEY
+              value: "token"
+            - name: JWT_SECRET_KEY
+              value: "17744433494210179015"
           ports:
             - containerPort: 3349

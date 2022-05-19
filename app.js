@@ -19,10 +19,10 @@ const path = require('path');
 app.use(express.static(__dirname + '/public'));
 
 // Load environment variables from .env file, where API keys and passwords are configured.
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
+// dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 // Set up Global configuration access
-// dotenv.config();
+dotenv.config();
 
 // Usamos body-parse para revisar el body cuando los request son post
 app.use(bodyParser.urlencoded({ extended: false }));
