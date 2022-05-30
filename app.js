@@ -33,7 +33,7 @@ app.get('/', (req, res) => {
 });
 
 // CONTROLLERS
-const { consumerOrderAdd, consumerOrderMDB, consumerOrderStatus } = require('./api/controllers/consumers')
+const { consumerOrderAdd, consumerOrderMDB, consumerOrderStatus } = require('./api/controllers/consumersOrder')
 
 const prefix = `api`
 

@@ -92,7 +92,7 @@ const token = async (req, res = response) => {
         axios(config)
         .then(async function (response) {
         console.log(JSON.stringify(response.data));
-        const mdb1 = await clienteMongo.INSERT_ONE('token_multivende', response.data)
+        const mdb1 = await clienteMongo.INSERT_ONE('token_multivende', {client_id: data.client_id,client_secret: data.client_secret, ...response.data})
             console.log(mdb1)
             res.status(200).json(response.data);
         })

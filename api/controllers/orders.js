@@ -10,7 +10,7 @@ const newOrder = async (data) => {
         const mdb = await clienteMongo.INSERT_ONE(esquema, data)
         console.log('MDB:',mdb)
         if (mdb.status == false) {
-            await clienteMongo.INSERT_ONE('log_error', {...data, error:mdb.message})
+            await clienteMongo.INSERT_ONE('log_error', {...data, error:mdb.message, type: 'Order'})
             return {message: 'ERROR', data: mdb.status}
         } else {
             await publishRabbitMq('ex_order', '', JSON.stringify(data))

@@ -98,6 +98,7 @@ const consumerOrderAdd = async () => {
                         "NumberOfParcels": 0
                     };
                     const order = await apis.ADD_ORDER(data)
+                    console.log(order[0])
                     console.log('Rpta IDOrder:', order[0].OrderId)
                     const jsonMQ = {...item, ...data, ...order[0], ID:order[0].OrderId}
                     await publishRabbitMq('ex_order_mdb', '', JSON.stringify(jsonMQ))
@@ -136,7 +137,8 @@ const consumerOrderMDB = async () => {
                     const mdb = await clienteMongo.UPDATE_ONE(esquema, {DeliveryOrderId: DeliveryOrderId}, item) 
                     console.log(mdb)
                     switch (IDstatus) {
-                        //case 9: // ONBACKORDER
+                        case 9: // ONBACKORDER
+                        case 0: // CANCELLED
                         case 3: // CANCELLED
                         case 4: // DESPATCHED
                             console.log('ORDER FINISH')
@@ -180,7 +182,7 @@ const consumerOrderStatus = async () => {
                     //console.log(item);
                     console.log('IDOrder',item.ID)
                     const order = await apis.GET_ORDER(item.ID)
-                    const IDstatus = order.OrderStatusId
+                    const IDstatus = order.OrderStatusId ? order.OrderStatusId : 0
                     console.log('New IDstatus',IDstatus)
                     const datailStatus = await apis.GET_DETAIL_STATUS(IDstatus)
                     console.log(datailStatus)

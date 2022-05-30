@@ -1,6 +1,7 @@
 const axios = require("axios");
 
-var apiKey = 'fb878038-58a1-47da-953a-29d750fe1f9b'
+// THE HUB
+var apiKey = process.env.APIKEY_THEHUB
 
 exports.GET_DETAIL_STATUS = async statusID => {
     console.log('AXIOS GET_DETAIL_STATUS')
@@ -41,6 +42,25 @@ exports.ADD_ORDER = async v => {
             method: 'PUT',
             baseURL: 'https://api.mintsoft.co.uk',
             url: `/api/Order?APIKey=${apiKey}`,
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            data: v
+        })
+        return data;
+    } catch (error) {
+        console.log(error.message);
+        return error.message;
+    }
+};
+
+exports.ADD_PRODUCT = async v => {
+    try {
+        console.log('AXIOS ADD_PRODUCT')
+        const { data } = await axios({
+            method: 'PUT',
+            baseURL: 'https://api.mintsoft.co.uk',
+            url: `/api/Product?APIKey=${apiKey}`,
             headers: { 
                 'Content-Type': 'application/json'
             },

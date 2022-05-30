@@ -1,14 +1,14 @@
-const clienteMongo = require('../database/mongo')
-const { publishRabbitMq } = require('../../utils/rabbitmq')
 const dotenv = require("dotenv");
+const clienteMongo = require('../database/mongo')
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 const { newOrder } = require('./orders')
+const { newProduct } = require('./products')
+const apis = require('../../utils/axios')
 
 const notify = async (req, res = response) => {
     try {
         console.log('NOTIFICAR PROCESO')
         console.log('Input', req.body)
-        console.log('CODE:',req.query.code)
         const notifyJson = req.body
         var notify;
         const typeProcess = 
@@ -21,9 +21,8 @@ const notify = async (req, res = response) => {
                 notify = await newOrder(notifyJson);
                 break;
             case 2:
-            console.log('PRODUCT')
-                //notify = await this.productService.addProduct(notifyJson);
-                
+                console.log('PRODUCT')
+                notify = await newProduct(notifyJson);                
                 break;
             default:
                 break;
