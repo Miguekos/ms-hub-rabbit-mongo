@@ -59,6 +59,7 @@ const refresh_token = async (req, res = response) => {
 
 const token = async (req, res = response) => {
     try {
+        const token = req.body.token
         console.log('TOKEN')
         const mdb = await clienteMongo.GET_ONE_LATEST_TIME('token_multivende', {}) 
 
@@ -75,7 +76,7 @@ const token = async (req, res = response) => {
             client_id: 585956977825,
             client_secret: "LXDKAfFzh7cIUUkBL4LtAYSZM8nweAgnDLJekK2zZdr2BavODC",
             grant_type: "authorization_code",
-            code: "ac-4f3970de-3711-4086-a988-b9129b7645f2"
+            code: token
         }
 
         var config = {
