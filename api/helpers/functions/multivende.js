@@ -1,5 +1,7 @@
 var axios = require('axios');
 const clienteMongo = require('../../database/mongo')
+const apis = require('../../../utils/axios')
+const moment = require('moment')
 
 const TOKEN_OAUTH = async (data) => {
     try {
@@ -7,170 +9,138 @@ const TOKEN_OAUTH = async (data) => {
         const token = data.token
         const client_id = parseInt(data.client_id)
         const client_secret = data.client_secret
+        const type = data.type
         var output
+        var inputMultivende
 
-        var data = {
-            client_id: client_id,
-            client_secret: client_secret,
-            grant_type: "authorization_code",
-            code: token
-        }
-        console.log(data)
-        var config = {
-            method: 'post',
-            baseURL: 'https://app.multivende.com',
-            url: '/oauth/access-token',
-            //url: 'https://app.multivende.com/oauth/access-token',
-            headers: { 
-                'cache-control': 'no-cache', 
-                'Content-Type': 'application/json'
-            },
-            data : data
-        };
-
-        await axios(config)
-        .then(async function (response) {
-            const inputToken = {
-                idMultivende: response.data._id,
-                client_id: data.client_id,
-                client_secret: data.client_secret,
-                ...response.data,
-                
-            }
-            delete inputToken._id
-            const mdb1 = await clienteMongo.INSERT_ONE('token_multivende', inputToken)
-            console.log('_ID',mdb1)
-            output = { status: 200, id: mdb1, data: inputToken }
-        })
-        .catch(async function (error) {
-            var statusText
-            var status
-            if (error.response) {// La respuesta fue hecha y el servidor respondió con un código de estado
-              status = error.response.status
-              //statusText = error.response.statusText
-              statusText = error.response.data.name
-              console.log(statusText);
-            } else { // La petición fue hecha pero no se recibió respuesta o algo paso al preparar la petición que lanzo un Error
-              status = 400
-            }
-            console.log(status)
-            output = { status: status, message: statusText }
-        });
-        return output
-    } catch (error) {
-        console.log(error.message)
-        output = { status: 500, message: error.message }
-        return output
-    }
-}
-
-const RERESH_TOKEN_OAUTH = async (data) => {
-    try {
-        console.log('RERESH_TOKEN_OAUTH')
-        const client_id = parseInt(data.client_id)
-        const client_secret = data.client_secret
-        var output
-
-        const inputMDB = {
-            client_id: client_id,
-            client_secret: client_secret
-        }
-        const mdb = await clienteMongo.GET_ONE_LATEST_TIME('token_multivende', inputMDB)
-        if(JSON.stringify(mdb) == '[]') {
-            console.log('NO EXISTE DATA')
-            throw  { status: 500, message: 'No existe token registrado anteriormente.' }
-        }
-        console.log('refreshToken:',mdb[0].refreshToken)
-
-        var data = {
-            client_id: client_id,
-            client_secret: client_secret,
-            grant_type: "refresh_token",
-            refresh_token: mdb[0].refreshToken
-        }
-
-        var config = {
-            method: 'post',
-            baseURL: 'https://app.multivende.com',
-            url: '/oauth/access-token',
-            //url: 'https://app.multivende.com/oauth/access-token',
-            headers: { 
-                'cache-control': 'no-cache', 
-                'Content-Type': 'application/json'
-            },
-            data : data
-        };
-
-        await axios(config)
-        .then(async function (response) {
-            const inputToken = {
-                idMultivende: response.data._id,
+        if (type == 1) { // CREATE
+            inputMultivende = {
                 client_id: client_id,
                 client_secret: client_secret,
-                ...response.data
+                grant_type: "authorization_code",
+                code: token
             }
-            delete inputToken._id
-            const mdb1 = await clienteMongo.INSERT_ONE('token_multivende', inputToken)
-            console.log('_ID',mdb1)
-            output = { status: 200, id: mdb1, data: inputToken }
-        })
-        .catch(function (error) {
-            var statusText
-            var status
-            if (error.response) {// La respuesta fue hecha y el servidor respondió con un código de estado
-              status = error.response.status
-              //statusText = error.response.statusText
-              statusText = error.response.data.name
-              console.log(statusText);
-            } else { // La petición fue hecha pero no se recibió respuesta o algo paso al preparar la petición que lanzo un Error
-              status = 400
+        } else if (type == 2){ // REFRESH
+            const inputMDB = {
+                client_id: client_id,
+                client_secret: client_secret
             }
-            console.log(status)
-            output = { status: status, message: statusText }
-        });
+            const mdb = await clienteMongo.GET_ONE_LATEST_TIME('token_multivende', inputMDB)
+            if(JSON.stringify(mdb) == '[]') {
+                console.log('NO EXISTE DATA')
+                throw  { status: 500, message: 'No existe token registrado anteriormente.' }
+            }
+            console.log('refreshToken:',mdb[0].refreshToken)
+
+            inputMultivende = {
+                client_id: client_id,
+                client_secret: client_secret,
+                grant_type: "refresh_token",
+                refresh_token: mdb[0].refreshToken
+            }
+        }
+
+        console.log(inputMultivende)
+
+        const tokenOauth = await apis.TOKEN_MULTIVENDE(inputMultivende)
+
+        if (tokenOauth.status == 200) {
+            console.log('future refreshToken:',tokenOauth.data.refreshToken)
+            const inputMDB = {
+                idMultivende: tokenOauth.data._id,
+                client_id: inputMultivende.client_id,
+                client_secret: inputMultivende.client_secret,
+                ...tokenOauth.data,
+                
+            }
+            delete inputMDB._id
+            const mdb = await clienteMongo.INSERT_ONE('token_multivende', inputMDB)
+            console.log('_ID',mdb)
+            output = { status: tokenOauth.status, id: mdb, data: inputMDB }
+        } else {
+            output = { status: tokenOauth.status, data: tokenOauth.message}
+        }
         return output
+    } catch (error) {
+        console.log(error.message)
+        output = { status: 500, data: error.message }
+        return output
+    }
+}
+
+const POLLING = async () => {
+    try {
+        var merchant_id = 'd70308c6-0e76-46d8-9d02-5d55a7706f71'
+        const ayer = moment().subtract(2, 'days').utc().format()
+        const hoy = moment().utc().format()
+        console.log(ayer)
+        console.log(hoy)
+
+        const token = await TOKEN_OAUTH({
+            client_id: process.env.CLIENT_ID,
+            client_secret: process.env.CLIENT_SECRET,
+            type: 2
+        })
+
+        if (token.status == 200) {
+            const auth = token.data.token
+            console.log(auth)
+            const inputPolling = {
+                merchant_id: process.env.MERCHANT_ID,
+                startData: ayer,
+                endData: hoy,
+                auth
+            }
+            const rptaPolling = await apis.POLLING(inputPolling)
+            if(rptaPolling.status == 200) {
+                console.log(rptaPolling.data.entries)
+                const arrayPolling = rptaPolling.data.entries
+                if (JSON.stringify(arrayPolling) != '[]') {
+                    console.log(arrayPolling.length)
+                    for (let i = 0; i < arrayPolling.length; i++) {
+                        const element = arrayPolling[i];
+                        console.log(element._id)
+                        const query = {
+                            _id:element._id
+                        }
+                        const ventaPolling = await clienteMongo.GET_ONE('pollingDetail', query)
+                        if(ventaPolling.response == false) { // Data Nueva
+                            const inputCheckout = {
+                                checkout_id: element._id,
+                                auth
+                            }
+                            const rptaCheckout = await apis.CHECKOUTS(inputCheckout)
+
+                            if (rptaCheckout.status == 200){
+                                const mdb = await clienteMongo.INSERT_ONE('pollingDetail', element)
+                                console.log(mdb)
+                            }
+                            
+                        }
+
+                        
+                    }
+                    
+                }
+                return { status: rptaPolling.status , message: 'OK' }
+            } else {
+                return rptaPolling
+            }
+            
+            
+
+           // return rptaCheckout
+        } else {
+            return token
+        }
     } catch (error) {
         console.log(error.message)
         output = { status: 500, message: error.message }
         return output
     }
 }
-
-// const POLLING = async (data) => {
-//     try {
-//         var merchant_id = 'd70308c6-0e76-46d8-9d02-5d55a7706f71'
-//         var config = {
-//             method: 'get',
-//             url: '{{base_url}}/api/m/{{merchant_id}}/checkouts/light/p/{{page}}?_updated_at_from=2019-09-10T00:00:00.000Z&_updated_at_to=2019-12-10T00:00:00.000Z',
-//             headers: { 
-//               'Authorization': 'Bearer {{access_token}}'
-//             }
-//         };
-//         var config = {
-//             method: 'GET',
-//             baseURL: 'https://app.multivende.com',
-//             url: `/api/m/${merchant_id}/checkouts/light/p/1?_updated_at_from=2019-09-10T00:00:00.000Z&_updated_at_to=2019-12-10T00:00:00.000Z`,
-//             //url: 'https://app.multivende.com/oauth/access-token',
-//             headers: { 
-//                 'cache-control': 'no-cache', 
-//                 'Content-Type': 'application/json'
-//             },
-//             data : data
-//         };
-
-//         axios(config)
-//         .then(function (response) {
-//         console.log(JSON.stringify(response.data));
-//         })
-//         .catch(function (error) {
-//         console.log(error);
-//         });
-//     } catch (error) {
-        
-//     }
-// }
 
 module.exports = {
     TOKEN_OAUTH,
-    RERESH_TOKEN_OAUTH
+    POLLING
 }

@@ -84,12 +84,12 @@ exports.GET_ONE = async (esquema, query) => {
         const collection = db.collection(esquema);
         const result = await collection.findOne(query);
         // console.log(result);
-        const output = { codRes: result ? '00' : '01', ...result };
+        const output = { response: result ? true: false, data: result };
         client.close();
-        return result;
+        return output;
     } catch (error) {
         console.log(error.message);
-        return {status: false, message: error.message};
+        throw {response: false, message: error.message};
     }
 };
 

@@ -5,7 +5,7 @@ const clienteMongo = require('../database/mongo')
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 const { newOrder } = require('./orders')
 const { newProduct } = require('./products')
-const tokenMultivende = require('../helpers/functions/multivende')
+const multivende = require('../helpers/functions/multivende')
 
 const notify = async (req, res = response) => {
     try {
@@ -43,16 +43,8 @@ const token = async (req, res = response) => {
     try {
         console.log('token')
         console.log('Input:',req.body)
-        const token = await tokenMultivende.TOKEN_OAUTH(req.body)
-        if (token.status == 200) {
-            console.log('future refreshToken:',token.data.refreshToken)
-            res.status(200).json({
-                ok: true,
-                data: token.data
-            });
-        } else {
-            res.status(token.status).send(token.message);
-        }
+        const token = await multivende.TOKEN_OAUTH({...req.body, type: 1})
+        res.status(token.status).json(token.data);
     } catch (error) {
         console.log(error.message)
         res.status(500).json({
@@ -64,18 +56,24 @@ const token = async (req, res = response) => {
 
 const refresh_token = async (req, res = response) => {
     try {
-        console.log('refresh_token')
+        console.log('token')
         console.log('Input:',req.body)
-        const token = await tokenMultivende.RERESH_TOKEN_OAUTH(req.body)
-        if (token.status == 200) {
-            console.log('future refreshToken:',token.data.refreshToken)
-            res.status(200).json({
-                ok: true,
-                data: token.data
-            });
-        } else {
-            res.status(token.status).send(token.message);
-        }
+        const token = await multivende.TOKEN_OAUTH({...req.body, type: 2})
+        res.status(token.status).json(token.data);
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).json({
+            ok: false,
+            msg: 'Error de envio de data'
+        });
+    }
+}
+
+const polling = async (req, res) => {
+    try {
+        console.log('token')
+        const polling = await multivende.POLLING()
+        res.status(polling.status).json(polling.data);
     } catch (error) {
         console.log(error.message)
         res.status(500).json({
@@ -88,5 +86,6 @@ const refresh_token = async (req, res = response) => {
 module.exports = {
     notify,
     token,
-    refresh_token
+    refresh_token,
+    polling
 }
