@@ -93,7 +93,6 @@ const POLLING = async () => {
             }
             const rptaPolling = await apis.POLLING(inputPolling)
             if(rptaPolling.status == 200) {
-                console.log(rptaPolling.data.entries)
                 const arrayPolling = rptaPolling.data.entries
                 if (JSON.stringify(arrayPolling) != '[]') {
                     console.log(arrayPolling.length)
