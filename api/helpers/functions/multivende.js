@@ -116,7 +116,7 @@ const POLLING = async () => {
                                 const rptaCheckout = await apis.CHECKOUTS(inputCheckout)
     
                                 if (rptaCheckout.status == 200){
-                                    const mdb = await clienteMongo.INSERT_ONE('pollingDetail', element)
+                                    const mdb = await clienteMongo.INSERT_ONE('pollingDetail', rptaCheckout.data)
                                     console.log(mdb)
                                 }
                                 
