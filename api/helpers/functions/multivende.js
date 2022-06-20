@@ -70,7 +70,7 @@ const TOKEN_OAUTH = async (data) => {
 
 const POLLING = async () => {
     try {
-        const ayer = moment().subtract(5, 'days').utc().format()
+        const ayer = moment().subtract(1, 'days').utc().format()
         const hoy = moment().utc().format()
         console.log(ayer)
         console.log(hoy)
