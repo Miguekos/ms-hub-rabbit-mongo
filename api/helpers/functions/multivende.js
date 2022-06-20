@@ -70,12 +70,12 @@ const TOKEN_OAUTH = async (data) => {
 
 const POLLING = async () => {
     try {
-        var merchant_id = 'd70308c6-0e76-46d8-9d02-5d55a7706f71'
-        const ayer = moment().subtract(2, 'days').utc().format()
+        const ayer = moment().subtract(5, 'days').utc().format()
         const hoy = moment().utc().format()
         console.log(ayer)
         console.log(hoy)
 
+        var rptaPolling = { status: 500}
         const token = await TOKEN_OAUTH({
             client_id: process.env.CLIENT_ID,
             client_secret: process.env.CLIENT_SECRET,
@@ -85,50 +85,49 @@ const POLLING = async () => {
         if (token.status == 200) {
             const auth = token.data.token
             console.log(auth)
-            const inputPolling = {
-                merchant_id: process.env.MERCHANT_ID,
-                startData: ayer,
-                endData: hoy,
-                auth
-            }
-            const rptaPolling = await apis.POLLING(inputPolling)
-            if(rptaPolling.status == 200) {
-                const arrayPolling = rptaPolling.data.entries
-                if (JSON.stringify(arrayPolling) != '[]') {
-                    console.log(arrayPolling.length)
-                    for (let i = 0; i < arrayPolling.length; i++) {
-                        const element = arrayPolling[i];
-                        console.log(element._id)
-                        const query = {
-                            _id:element._id
-                        }
-                        const ventaPolling = await clienteMongo.GET_ONE('pollingDetail', query)
-                        if(ventaPolling.response == false) { // Data Nueva
-                            const inputCheckout = {
-                                checkout_id: element._id,
-                                auth
-                            }
-                            const rptaCheckout = await apis.CHECKOUTS(inputCheckout)
+            var totalPage = 0
+            var j = 1
 
-                            if (rptaCheckout.status == 200){
-                                const mdb = await clienteMongo.INSERT_ONE('pollingDetail', element)
-                                console.log(mdb)
+            do {
+                const inputPolling = {
+                    startData: ayer,
+                    endData: hoy,
+                    auth,
+                    page: j
+                }
+                rptaPolling = await apis.POLLING(inputPolling)
+                if(rptaPolling.status == 200) {
+                    const arrayPolling = rptaPolling.data.entries
+                    totalPage = rptaPolling.data.pagination.total_pages
+                    if (JSON.stringify(arrayPolling) != '[]') {
+                        console.log(arrayPolling.length)
+                        for (let i = 0; i < arrayPolling.length; i++) {
+                            const element = arrayPolling[i];
+                            console.log(element._id)
+                            const query = {
+                                _id:element._id
                             }
-                            
+                            const ventaPolling = await clienteMongo.GET_ONE('pollingDetail', query)
+                            if(ventaPolling.response == false) { // Data Nueva
+                                const inputCheckout = {
+                                    checkout_id: element._id,
+                                    auth
+                                }
+                                const rptaCheckout = await apis.CHECKOUTS(inputCheckout)
+    
+                                if (rptaCheckout.status == 200){
+                                    const mdb = await clienteMongo.INSERT_ONE('pollingDetail', element)
+                                    console.log(mdb)
+                                }
+                                
+                            }
                         }
-
                         
                     }
-                    
-                }
-                return { status: rptaPolling.status , message: 'OK' }
-            } else {
-                return rptaPolling
-            }
-            
-            
-
-           // return rptaCheckout
+                } 
+                j = j + 1;
+            } while (j <= totalPage && totalPage != 0);
+            return rptaPolling
         } else {
             return token
         }
@@ -139,7 +138,64 @@ const POLLING = async () => {
     }
 }
 
+const PRODUCTS = async () => {
+    try {
+        console.log('PRODUCTS')
+        var rptaProd = { status: 500}
+        const token = await TOKEN_OAUTH({
+            client_id: process.env.CLIENT_ID,
+            client_secret: process.env.CLIENT_SECRET,
+            type: 2
+        })
+
+        
+        if (token.status == 200) {
+            const auth = token.data.token
+            console.log(auth)
+            var totalPage = 0
+            var j = 1
+
+            do {
+                const inputProd = {
+                    auth,
+                    page: j
+                }
+                rptaProd = await apis.GET_PRODUCTS(inputProd)
+                
+                if(rptaProd.status == 200) {
+                    const arrayProd = rptaProd.data.entries
+                    totalPage = rptaProd.data.pagination.total_pages
+                    if (JSON.stringify(arrayProd) != '[]') {
+                        console.log(arrayProd.length)
+                        for (let i = 0; i < arrayProd.length; i++) {
+                            const element = arrayProd[i];
+                            console.log(element._id)
+                            const query = {
+                                _id:element._id
+                            }
+                            const ventaPolling = await clienteMongo.GET_ONE('productDetail', query)
+                            if(ventaPolling.response == false) { // Data Nueva
+                                const mdb = await clienteMongo.INSERT_ONE('productDetail', element)
+                                console.log(mdb)
+                                
+                            }
+                        }
+                    }
+                }
+                j = j + 1;
+            } while (j <= totalPage && totalPage != 0);
+            return rptaProd
+        } else {
+            return token
+        }
+
+    } catch (error) {
+        
+    }
+}
+
 module.exports = {
     TOKEN_OAUTH,
-    POLLING
+    POLLING,
+    PRODUCTS
 }

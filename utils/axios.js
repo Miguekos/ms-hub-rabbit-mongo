@@ -115,11 +115,11 @@ exports.TOKEN_MULTIVENDE = async v => {
 exports.POLLING = async v => {
     try {
         console.log('POLLING')
-        console.log(`${process.env.IP_MULTIVENDE}/api/m/${v.merchant_id}/checkouts/light/p/1?_updated_at_from=${v.startData}&_updated_at_to=${v.endData}`)
+        console.log(`${process.env.IP_MULTIVENDE}/api/m/${process.env.MERCHANT_ID}/checkouts/light/p/1?_updated_at_from=${v.startData}&_updated_at_to=${v.endData}`)
         await axios({
             method: 'GET',
             baseURL: process.env.IP_MULTIVENDE,
-            url: `/api/m/${v.merchant_id}/checkouts/light/p/1?_updated_at_from=${v.startData}&_updated_at_to=${v.endData}`,
+            url: `/api/m/${process.env.MERCHANT_ID}/checkouts/light/p/${v.page}?_updated_at_from=${v.startData}&_updated_at_to=${v.endData}`,
             header: { 
                 'cache-control': 'no-cache', 
                 'Content-Type': 'application/json'
@@ -186,4 +186,42 @@ exports.CHECKOUTS = async v => {
         console.log(error.message);
         return error.message;
     }
+}
+
+exports.GET_PRODUCTS = async v => {
+try {
+    console.log('GET_PRODUCTS')
+    console.log(`${process.env.IP_MULTIVENDE}/api/m/${process.env.MERCHANT_ID}/products/p/${v.page}`)
+    await axios({
+        method: 'GET',
+        baseURL: process.env.IP_MULTIVENDE,
+        url: `/api/m/${process.env.MERCHANT_ID}/products/p/${v.page}`,
+        header: { 
+            'cache-control': 'no-cache', 
+            'Content-Type': 'application/json'
+        },
+        headers: { Authorization: `Bearer ${v.auth}` }
+    })
+    .then(async function (response) {
+        console.log('STATUS:',response.status)
+        output = { status: response.status, data: response.data }
+    })
+    .catch(async function (error) {
+        var statusText
+        var status
+        if (error.response) {// La respuesta fue hecha y el servidor respondió con un código de estado
+            status = error.response.status
+            statusText = error.response.data.name
+            console.log(statusText);
+        } else { // La petición fue hecha pero no se recibió respuesta o algo paso al preparar la petición que lanzo un Error
+            status = 400
+        }
+        console.log('STATUS:',status)
+        output = { status: status, message: statusText }
+    });
+    return output
+} catch (error) {
+    console.log(error.message);
+    return error.message;
+}
 }

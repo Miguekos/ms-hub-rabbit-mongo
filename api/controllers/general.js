@@ -83,9 +83,24 @@ const polling = async (req, res) => {
     }
 }
 
+const pollingProducts = async (req, res) => {
+    try {
+        console.log('pollingProducts')
+        const polling = await multivende.PRODUCTS()
+        res.status(polling.status).json(polling.data);
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).json({
+            ok: false,
+            msg: 'Error de envio de data'
+        });
+    }
+}
+
 module.exports = {
     notify,
     token,
     refresh_token,
-    polling
+    polling,
+    pollingProducts
 }
