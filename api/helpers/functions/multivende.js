@@ -194,8 +194,60 @@ const PRODUCTS = async () => {
     }
 }
 
+const UPDATE_STATUS = async (data) => {
+    try {
+        console.log('UPDATE_STATUS')
+
+        const arrayStatus = [
+            {theHub: 'NEW', multivende: '_delivery_order_status_pending_'},
+            {theHub: 'PICKED', multivende: '_delivery_order_status_handling_'},
+            {theHub: 'PACKANDHOLD', multivende: '_delivery_order_status_ready_to_ship_'},
+            {theHub: 'DESPACHED', multivende: '_delivery_order_status_delivered_'},
+        ]
+        const findStatus = arrayStatus.find( element => element.theHub === data.status );
+        console.log('findStatus', findStatus)
+        const codeStatusMultivende = findStatus.multivende
+
+        const token = await TOKEN_OAUTH({
+            client_id: process.env.CLIENT_ID,
+            client_secret: process.env.CLIENT_SECRET,
+            type: 2
+        })
+
+        if (token.status == 200) {
+            const auth = token.data.token
+            const statusData = await apis.GET_ORDER_STATUS_VENDEMAS({auth})
+    
+            if(statusData.status == 200) {
+                const arrayStatusMult = statusData.data.entries
+                const findStatusMult = arrayStatusMult.find( e => e.code === codeStatusMultivende );
+
+                const input = {
+                    orderID: data.orderID,
+                    updateDate: moment().format('DD-MM-YYYY'),
+                    statusID: findStatusMult._id,
+                    comment: data.comment,
+                    auth
+                }
+
+                const rpta = await apis.UPDATE_ORDER_STATUS_VENDEMAS(input)
+                return rpta
+            } else {
+                return statusData
+            }
+        } else {
+            return token
+        }
+    } catch (error) {
+        console.log(error.message)
+        output = { status: 500, message: error.message }
+        return output
+    }
+}
+
 module.exports = {
     TOKEN_OAUTH,
     POLLING,
-    PRODUCTS
+    PRODUCTS,
+    UPDATE_STATUS
 }

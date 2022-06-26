@@ -73,7 +73,7 @@ const polling = async (req, res) => {
     try {
         console.log('token')
         const polling = await multivende.POLLING()
-        res.status(polling.status).json(polling.data);
+        res.status(polling.status).json(polling);
     } catch (error) {
         console.log(error.message)
         res.status(500).json({
@@ -87,7 +87,7 @@ const pollingProducts = async (req, res) => {
     try {
         console.log('pollingProducts')
         const polling = await multivende.PRODUCTS()
-        res.status(polling.status).json(polling.data);
+        res.status(polling.status).json(polling);
     } catch (error) {
         console.log(error.message)
         res.status(500).json({
@@ -97,10 +97,27 @@ const pollingProducts = async (req, res) => {
     }
 }
 
+const updateStatusOrder = async (req, res) => {
+    try {
+        console.log('token')
+        console.log('Input:',req.body)
+        const { orderID, status, comment } = req.body
+        const update = await multivende.UPDATE_STATUS({ orderID, status, comment })
+        res.status(update.status).json(update);
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).json({
+            ok: false,
+            msg: error.message
+        });
+    }
+}
+
 module.exports = {
     notify,
     token,
     refresh_token,
     polling,
+    updateStatusOrder,
     pollingProducts
 }

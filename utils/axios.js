@@ -189,39 +189,161 @@ exports.CHECKOUTS = async v => {
 }
 
 exports.GET_PRODUCTS = async v => {
-try {
-    console.log('GET_PRODUCTS')
-    console.log(`${process.env.IP_MULTIVENDE}/api/m/${process.env.MERCHANT_ID}/products/p/${v.page}`)
-    await axios({
-        method: 'GET',
-        baseURL: process.env.IP_MULTIVENDE,
-        url: `/api/m/${process.env.MERCHANT_ID}/products/p/${v.page}`,
-        header: { 
-            'cache-control': 'no-cache', 
-            'Content-Type': 'application/json'
-        },
-        headers: { Authorization: `Bearer ${v.auth}` }
-    })
-    .then(async function (response) {
-        console.log('STATUS:',response.status)
-        output = { status: response.status, data: response.data }
-    })
-    .catch(async function (error) {
-        var statusText
-        var status
-        if (error.response) {// La respuesta fue hecha y el servidor respondió con un código de estado
-            status = error.response.status
-            statusText = error.response.data.name
-            console.log(statusText);
-        } else { // La petición fue hecha pero no se recibió respuesta o algo paso al preparar la petición que lanzo un Error
-            status = 400
-        }
-        console.log('STATUS:',status)
-        output = { status: status, message: statusText }
-    });
-    return output
-} catch (error) {
-    console.log(error.message);
-    return error.message;
+    try {
+        console.log('GET_PRODUCTS')
+        console.log(`${process.env.IP_MULTIVENDE}/api/m/${process.env.MERCHANT_ID}/products/p/${v.page}`)
+        await axios({
+            method: 'GET',
+            baseURL: process.env.IP_MULTIVENDE,
+            url: `/api/m/${process.env.MERCHANT_ID}/products/p/${v.page}`,
+            header: { 
+                'cache-control': 'no-cache', 
+                'Content-Type': 'application/json'
+            },
+            headers: { Authorization: `Bearer ${v.auth}` }
+        })
+        .then(async function (response) {
+            console.log('STATUS:',response.status)
+            output = { status: response.status, data: response.data }
+        })
+        .catch(async function (error) {
+            var statusText
+            var status
+            if (error.response) {// La respuesta fue hecha y el servidor respondió con un código de estado
+                status = error.response.status
+                statusText = error.response.data.name
+                console.log(statusText);
+            } else { // La petición fue hecha pero no se recibió respuesta o algo paso al preparar la petición que lanzo un Error
+                status = 400
+            }
+            console.log('STATUS:',status)
+            output = { status: status, message: statusText }
+        });
+        return output
+    } catch (error) {
+        console.log(error.message);
+        return error.message;
+    }
 }
+
+exports.GET_PRODUCTS = async v => {
+    try {
+        console.log('GET_PRODUCTS')
+        console.log(`${process.env.IP_MULTIVENDE}/api/m/${process.env.MERCHANT_ID}/products/p/${v.page}`)
+        await axios({
+            method: 'GET',
+            baseURL: process.env.IP_MULTIVENDE,
+            url: `/api/m/${process.env.MERCHANT_ID}/products/p/${v.page}`,
+            header: { 
+                'cache-control': 'no-cache', 
+                'Content-Type': 'application/json'
+            },
+            headers: { Authorization: `Bearer ${v.auth}` }
+        })
+        .then(async function (response) {
+            console.log('STATUS:',response.status)
+            output = { status: response.status, data: response.data }
+        })
+        .catch(async function (error) {
+            var statusText
+            var status
+            if (error.response) {// La respuesta fue hecha y el servidor respondió con un código de estado
+                status = error.response.status
+                statusText = error.response.data.name
+                console.log(statusText);
+            } else { // La petición fue hecha pero no se recibió respuesta o algo paso al preparar la petición que lanzo un Error
+                status = 400
+            }
+            console.log('STATUS:',status)
+            output = { status: status, message: statusText }
+        });
+        return output
+    } catch (error) {
+        console.log(error.message);
+        return error.message;
+    }
+}
+
+
+exports.GET_ORDER_STATUS_VENDEMAS = async v => {
+    try {
+        console.log('GET_ORDER_STATUS_VENDEMAS')
+        console.log(`${process.env.IP_MULTIVENDE}/api/delivery-order-statuses`)
+        await axios({
+            method: 'GET',
+            baseURL: process.env.IP_MULTIVENDE,
+            url: `/api/delivery-order-statuses`,
+            header: { 
+                'cache-control': 'no-cache', 
+                'Content-Type': 'application/json'
+            },
+            headers: { Authorization: `Bearer ${v.auth}` }
+        })
+        .then(async function (response) {
+            console.log('STATUS:',response.status)
+            output = { status: response.status, data: response.data }
+        })
+        .catch(async function (error) {
+            var statusText
+            var status
+            if (error.response) {// La respuesta fue hecha y el servidor respondió con un código de estado
+                status = error.response.status
+                statusText = error.response.data.name
+                console.log(statusText);
+            } else { // La petición fue hecha pero no se recibió respuesta o algo paso al preparar la petición que lanzo un Error
+                status = 400
+            }
+            console.log('STATUS:',status)
+            output = { status: status, message: statusText }
+        });
+        return output
+    } catch (error) {
+        console.log(error.message);
+        return error.message;
+    }
+}
+
+exports.UPDATE_ORDER_STATUS_VENDEMAS = async v => {
+    try {
+        console.log('GET_PRODUCTS')
+        console.log(`${process.env.IP_MULTIVENDE}/api/delivery-order-statuses`)
+        const input = {
+            DeliveryOrderId: v.orderID,
+            date: v.updateDate,
+            DeliveryOrderStatusId: v.statusID,
+            comment: v.comment
+        }
+        await axios({
+            method: 'PUT',
+            baseURL: process.env.IP_MULTIVENDE,
+            url: `/api/delivery-orders/{{delivery_order_id}}/change-delivery-status`,
+            header: { 
+                'cache-control': 'no-cache', 
+                'Content-Type': 'application/json'
+            },
+            headers: { Authorization: `Bearer ${v.auth}` },
+            "data-raw": input
+        })
+        .then(async function (response) {
+            console.log('STATUS:',response.status)
+            output = { status: response.status, data: response.data }
+        })
+        .catch(async function (error) {
+            var statusText
+            var status
+            if (error.response) {// La respuesta fue hecha y el servidor respondió con un código de estado
+                status = error.response.status
+                statusText = error.response.data.name
+                console.log(statusText);
+            } else { // La petición fue hecha pero no se recibió respuesta o algo paso al preparar la petición que lanzo un Error
+                status = 400
+            }
+            console.log('STATUS:',status)
+            output = { status: status, message: statusText }
+        });
+        return output
+    } catch (error) {
+        console.log(error.message);
+        return error.message;
+    }
 }
