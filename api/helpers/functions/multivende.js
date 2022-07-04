@@ -216,7 +216,7 @@ const UPDATE_STATUS = async (data) => {
 
         if (token.status == 200) {
             const auth = token.data.token
-            const statusData = await apis.GET_ORDER_STATUS_VENDEMAS({auth})
+            const statusData = await apis.GET_ORDER_STATUS_MULTIVENDE({auth})
     
             if(statusData.status == 200) {
                 const arrayStatusMult = statusData.data.entries

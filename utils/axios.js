@@ -265,9 +265,9 @@ exports.GET_PRODUCTS = async v => {
 }
 
 
-exports.GET_ORDER_STATUS_VENDEMAS = async v => {
+exports.GET_ORDER_STATUS_MULTIVENDE = async v => {
     try {
-        console.log('GET_ORDER_STATUS_VENDEMAS')
+        console.log('GET_ORDER_STATUS_MULTIVENDE')
         console.log(`${process.env.IP_MULTIVENDE}/api/delivery-order-statuses`)
         await axios({
             method: 'GET',
@@ -305,8 +305,9 @@ exports.GET_ORDER_STATUS_VENDEMAS = async v => {
 
 exports.UPDATE_ORDER_STATUS_VENDEMAS = async v => {
     try {
-        console.log('GET_PRODUCTS')
-        console.log(`${process.env.IP_MULTIVENDE}/api/delivery-order-statuses`)
+        console.log('UPDATE_ORDER_STATUS_VENDEMAS')
+        console.log(`${process.env.IP_MULTIVENDE}/api/delivery-orders/${v.orderID}/change-delivery-status`)
+        console.log(v)
         const input = {
             DeliveryOrderId: v.orderID,
             date: v.updateDate,
@@ -316,7 +317,7 @@ exports.UPDATE_ORDER_STATUS_VENDEMAS = async v => {
         await axios({
             method: 'PUT',
             baseURL: process.env.IP_MULTIVENDE,
-            url: `/api/delivery-orders/{{delivery_order_id}}/change-delivery-status`,
+            url: `/api/delivery-orders/${v.orderID}/change-delivery-status`,
             header: { 
                 'cache-control': 'no-cache', 
                 'Content-Type': 'application/json'
