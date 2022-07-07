@@ -23,7 +23,6 @@ const newOrder = async (data) => {
                 auth, 
                 channel : 'WEBHOOK'
             } 
-            console.log('jsonDetail:',jsonDetail)
             const rptaCheckout = await multivende.POLLING_DETAILS(jsonDetail)
             return rptaCheckout
         } else {

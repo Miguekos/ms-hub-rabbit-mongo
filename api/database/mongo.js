@@ -175,7 +175,7 @@ exports.GET_ONE_LATEST_TIME = async (esquema, query) => {
   exports.GET_NEXT_SEQUENCE = async (name, esquemaSequence) => {
     try {
       console.log("GET_NEXT_SEQUENCE");
-      const client = await MongoClient.connect(conexionMongo, {
+      const client = await mongoClient.connect(conexionMongo, {
         useNewUrlParser: true,
         useUnifiedTopology: true
       });

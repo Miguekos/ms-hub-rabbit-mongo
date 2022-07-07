@@ -29,11 +29,11 @@ const consumerOrderAdd = async () => {
                     const year = moment().format("YYYY");
                     const _idSeq = `${year}_order_multivende`;
                     const collectionSeq = 'sequence'
-                    const secuencial = await clienteMongo.GET_ONE({ _id: _idSeq }, collectionSeq);
+                    const secuencial = await clienteMongo.GET_ONE(collectionSeq, { _id: _idSeq });
                     console.log(JSON.stringify(secuencial));
-                    if (secuencial === null) {
+                    if (secuencial.response === false) {
                     const jsonSeq = { _id: _idSeq, detail: `Sequence ${year} de orders multivende`, seq: 1 };
-                    await clienteMongo.INSERT_ONE(jsonSeq, collectionSeq);
+                    const seq = await clienteMongo.INSERT_ONE(collectionSeq, jsonSeq);
                     }
                     const sequence = await clienteMongo.GET_NEXT_SEQUENCE(_idSeq, collectionSeq);
                     console.log('sequence:',sequence)
@@ -52,25 +52,26 @@ const consumerOrderAdd = async () => {
                     }
                     var data = {
                         "OrderItems": OrderItems,
-                        "OrderNumber": "4553",
-                        "FirstName": item.name,
-                        "LastName": item.lastName,
+                        "OrderNumber": sequence,
+                        "FirstName": item.Client.name,
+                        "LastName": item.Client.lastName,
                         "Address1": "Los Olivos -TEST",
                         "Town": "MAGDALENA DEL MAR",
                         "County": "LIMA",
                         "PostCode": ".",
                         "Country": "LIMA",
-                        "CountryId": sequence,
+                        "CountryId": 399,
                         "CourierService": "Next cod",
                         "Warehouse": "",
                         "WarehouseId": 3,
                         "Comments": "TEST - TEST - TEST",
                         "ClientId": 5
                     };
+                    console.log('DATA PARA INSERTAR: ', data)
                     const order = await apis.ADD_ORDER(data)
                     console.log(order[0])
                     console.log('Rpta IDOrder:', order[0].OrderId)
-                    const jsonMQ = {...item, ...data, ...order[0], ID:order[0].OrderId}
+                    const jsonMQ = {...item, inputTheHub: data, addTheHub: order[0], OrderId:order[0].OrderId, OrderStatusId: order[0].OrderStatusId}
                     await publishRabbitMq('ex_order_mdb', '', JSON.stringify(jsonMQ))
                     ch.ack(msg);
                 } catch (error) {
@@ -107,6 +108,7 @@ const consumerOrderMDB = async () => {
                     const mdb = await clienteMongo.UPDATE_ONE(esquema, {_id: checkoutId}, item) 
                     console.log(mdb)
                     switch (IDstatus) {
+                        case 0: // ERROR
                         case 3: // CANCELLED
                         case 4: // DESPATCHED
                             console.log('ORDER FINISH')
@@ -148,8 +150,10 @@ const consumerOrderStatus = async () => {
                     console.log('* LOGICA DE CONSULTA DE ESTADO')
                     const item = JSON.parse(msg.content.toString());
                     //console.log(item);
-                    console.log('IDOrder',item.ID)
-                    const order = await apis.GET_ORDER(item.ID)
+                    const checkoutId = item._id
+                    console.log('CheckoutId', checkoutId)
+                    console.log('IDOrder',item.OrderId)
+                    const order = await apis.GET_ORDER(item.OrderId)
                     const IDstatus = order.OrderStatusId ? order.OrderStatusId : 0
                     console.log('New IDstatus',IDstatus)
                     const datailStatus = await apis.GET_DETAIL_STATUS(IDstatus)
@@ -162,6 +166,8 @@ const consumerOrderStatus = async () => {
                     await publishRabbitMq('ex_order_mdb', '', JSON.stringify(jsonMDB))
 
                     const deliveryID = item.DeliveryOrderInCheckouts[0].DeliveryOrder._id
+                    console.log('DELIVERYYYYYYYYYYY ID:',deliveryID)
+
 
                     const jsonUpdStatus = { 
                         orderID: deliveryID, 
