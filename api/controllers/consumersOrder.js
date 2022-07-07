@@ -1,4 +1,5 @@
 const amqp = require("amqplib/callback_api");
+const moment = require("moment");
 const { publishRabbitMq } = require('../../utils/rabbitmq')
 const clienteMongo = require('../database/mongo')
 const apis = require('../../utils/axios')
@@ -21,7 +22,21 @@ const consumerOrderAdd = async () => {
                 try {
                     console.log('* LOGICA DE REGISTRO DE ORDER')
                     const item = JSON.parse(msg.content.toString());
-                    console.log('DeliveryOrderId: ',item.DeliveryOrderId);
+                    //console.log('DeliveryOrderId: ',item.DeliveryOrderId);
+                    console.log('CheckoutId: ',item._id);
+
+                    // VERIFICAR SECUENCIAL
+                    const year = moment().format("YYYY");
+                    const _idSeq = `${year}_order_multivende`;
+                    const collectionSeq = 'sequence'
+                    const secuencial = await clienteMongo.GET_ONE({ _id: _idSeq }, collectionSeq);
+                    console.log(JSON.stringify(secuencial));
+                    if (secuencial === null) {
+                    const jsonSeq = { _id: _idSeq, detail: `Sequence ${year} de orders multivende`, seq: 1 };
+                    await clienteMongo.INSERT_ONE(jsonSeq, collectionSeq);
+                    }
+                    const sequence = await clienteMongo.GET_NEXT_SEQUENCE(_idSeq, collectionSeq);
+                    console.log('sequence:',sequence)
 
                     var OrderItems = []
                     const arrayProd = item.CheckoutItems
@@ -45,7 +60,7 @@ const consumerOrderAdd = async () => {
                         "County": "LIMA",
                         "PostCode": ".",
                         "Country": "LIMA",
-                        "CountryId": 399,
+                        "CountryId": sequence,
                         "CourierService": "Next cod",
                         "Warehouse": "",
                         "WarehouseId": 3,
@@ -85,11 +100,11 @@ const consumerOrderMDB = async () => {
                 try {
                     console.log('* LOGICA DE MDB DE ORDER')
                     const item = JSON.parse(msg.content.toString());
-                    const DeliveryOrderId = item.DeliveryOrderId
+                    const checkoutId = item._id
                     const IDstatus = item.OrderStatusId
-                    console.log('DeliveryOrderId',DeliveryOrderId)
+                    console.log('CheckoutId', checkoutId)
                     console.log('IDstatus',IDstatus)
-                    const mdb = await clienteMongo.UPDATE_ONE(esquema, {DeliveryOrderId: DeliveryOrderId}, item) 
+                    const mdb = await clienteMongo.UPDATE_ONE(esquema, {_id: checkoutId}, item) 
                     console.log(mdb)
                     switch (IDstatus) {
                         case 3: // CANCELLED

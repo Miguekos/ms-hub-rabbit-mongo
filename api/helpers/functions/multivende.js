@@ -40,9 +40,6 @@ const TOKEN_OAUTH = async (data) => {
                 refresh_token: mdb[0].refreshToken
             }
         }
-
-        console.log(inputMultivende)
-
         const tokenOauth = await apis.TOKEN_MULTIVENDE(inputMultivende)
 
         if (tokenOauth.status == 200) {
@@ -56,7 +53,6 @@ const TOKEN_OAUTH = async (data) => {
             }
             delete inputMDB._id
             const mdb = await clienteMongo.INSERT_ONE('token_multivende', inputMDB)
-            console.log('_ID',mdb)
             output = { status: tokenOauth.status, id: mdb, data: inputMDB }
         } else {
             output = { status: tokenOauth.status, data: tokenOauth.message}
@@ -64,7 +60,7 @@ const TOKEN_OAUTH = async (data) => {
         return output
     } catch (error) {
         console.log(error.message)
-        output = { status: 500, data: error.message }
+        output = { status: 500, message: error.message }
         return output
     }
 }
@@ -109,7 +105,8 @@ const POLLING = async () => {
                             const checkoutId = arrayPolling[i]._id;
                             console.log(checkoutId)
 
-                            await POLLING_DETAILS({checkoutId, channel, auth})
+                            const jsonDetail = {checkoutId, channel, auth, data: arrayPolling[i]}
+                            await POLLING_DETAILS(jsonDetail)
                         }
                         
                     }
@@ -129,11 +126,12 @@ const POLLING = async () => {
 
 const POLLING_DETAILS = async (json) => {
     try {
-        const { checkoutId, auth, channel } = json
+        var esquema = 'orders'
+        const { data, checkoutId, auth, channel } = json
         const query = {
             _id: checkoutId
         }
-        const ventaPolling = await clienteMongo.GET_ONE('pollingDetail', query)
+        const ventaPolling = await clienteMongo.GET_ONE(esquema, query)
         if(ventaPolling.response == false) { // Data Nueva
             const inputCheckout = {
                 checkout_id: checkoutId,
@@ -142,10 +140,21 @@ const POLLING_DETAILS = async (json) => {
             const rptaCheckout = await apis.CHECKOUTS(inputCheckout)
 
             if (rptaCheckout.status == 200){
-                const mdb = await clienteMongo.INSERT_ONE('pollingDetail', rptaCheckout.data)
+                const bodyDetail = {
+                    ...data,
+                    ...rptaCheckout.data, 
+                    channel
+                }
+                const mdb = await clienteMongo.INSERT_ONE(esquema, bodyDetail)
                 console.log(mdb)
-                //await publishRabbitMq('ex_order', '', JSON.stringify({...rptaCheckout.data, channel }))
-                return { status: 200, message: 'Ok', data: rptaCheckout.data }
+
+                if (mdb.status == false) {
+                    await clienteMongo.INSERT_ONE('log_error', {...rptaCheckout.data, error:mdb.message, channel, type: 'Order'})
+                    return { status: 500, message: 'ERROR', data: mdb.status}
+                } else {
+                    await publishRabbitMq('ex_order', '', JSON.stringify(bodyDetail))
+                    return { status: 200, message: 'OK', data: bodyDetail}
+                }
             } else {
                 return { status: 500, message: 'Error Checkout' }
             }

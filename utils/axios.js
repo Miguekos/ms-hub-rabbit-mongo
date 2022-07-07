@@ -152,7 +152,7 @@ exports.POLLING = async v => {
 
 exports.CHECKOUTS = async v => {
     try {
-        console.log('POLLING')
+        console.log('CHECKOUTS DETAILS')
         console.log(`${process.env.IP_MULTIVENDE}/api/checkouts/${v.checkout_id}`)
         await axios({
             method: 'GET',
