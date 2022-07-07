@@ -2,6 +2,7 @@ var axios = require('axios');
 const clienteMongo = require('../../database/mongo')
 const apis = require('../../../utils/axios')
 const moment = require('moment')
+const { publishRabbitMq } = require('../../../utils/rabbitmq')
 
 const TOKEN_OAUTH = async (data) => {
     try {
@@ -72,6 +73,8 @@ const POLLING = async () => {
     try {
         const ayer = moment().subtract(1, 'days').utc().format()
         const hoy = moment().utc().format()
+        const channel = 'POLLING'
+        let cantidad
         console.log(ayer)
         console.log(hoy)
 
@@ -100,37 +103,56 @@ const POLLING = async () => {
                     const arrayPolling = rptaPolling.data.entries
                     totalPage = rptaPolling.data.pagination.total_pages
                     if (JSON.stringify(arrayPolling) != '[]') {
-                        console.log(arrayPolling.length)
-                        for (let i = 0; i < arrayPolling.length; i++) {
-                            const element = arrayPolling[i];
-                            console.log(element._id)
-                            const query = {
-                                _id:element._id
-                            }
-                            const ventaPolling = await clienteMongo.GET_ONE('pollingDetail', query)
-                            if(ventaPolling.response == false) { // Data Nueva
-                                const inputCheckout = {
-                                    checkout_id: element._id,
-                                    auth
-                                }
-                                const rptaCheckout = await apis.CHECKOUTS(inputCheckout)
-    
-                                if (rptaCheckout.status == 200){
-                                    const mdb = await clienteMongo.INSERT_ONE('pollingDetail', rptaCheckout.data)
-                                    console.log(mdb)
-                                }
-                                
-                            }
+                        cantidad = arrayPolling.length
+                        console.log(cantidad)
+                        for (let i = 0; i < cantidad; i++) {
+                            const checkoutId = arrayPolling[i]._id;
+                            console.log(checkoutId)
+
+                            await POLLING_DETAILS({checkoutId, channel, auth})
                         }
                         
                     }
                 } 
                 j = j + 1;
             } while (j <= totalPage && totalPage != 0);
-            return rptaPolling
+            return { status : rptaPolling.status, totalVentas : cantidad }
         } else {
             return token
         }
+    } catch (error) {
+        console.log(error.message)
+        output = { status: 500, message: error.message }
+        return output
+    }
+}
+
+const POLLING_DETAILS = async (json) => {
+    try {
+        const { checkoutId, auth, channel } = json
+        const query = {
+            _id: checkoutId
+        }
+        const ventaPolling = await clienteMongo.GET_ONE('pollingDetail', query)
+        if(ventaPolling.response == false) { // Data Nueva
+            const inputCheckout = {
+                checkout_id: checkoutId,
+                auth
+            }
+            const rptaCheckout = await apis.CHECKOUTS(inputCheckout)
+
+            if (rptaCheckout.status == 200){
+                const mdb = await clienteMongo.INSERT_ONE('pollingDetail', rptaCheckout.data)
+                console.log(mdb)
+                //await publishRabbitMq('ex_order', '', JSON.stringify({...rptaCheckout.data, channel }))
+                return { status: 200, message: 'Ok', data: rptaCheckout.data }
+            } else {
+                return { status: 500, message: 'Error Checkout' }
+            }
+        } else {
+            return { status: 200, message: 'Data repetida' }
+        }
+
     } catch (error) {
         console.log(error.message)
         output = { status: 500, message: error.message }
@@ -197,46 +219,43 @@ const PRODUCTS = async () => {
 const UPDATE_STATUS = async (data) => {
     try {
         console.log('UPDATE_STATUS')
-
-        const arrayStatus = [
-            {theHub: 'NEW', multivende: '_delivery_order_status_pending_'},
-            {theHub: 'PICKED', multivende: '_delivery_order_status_handling_'},
-            {theHub: 'PACKANDHOLD', multivende: '_delivery_order_status_ready_to_ship_'},
-            {theHub: 'DESPACHED', multivende: '_delivery_order_status_delivered_'},
-        ]
-        const findStatus = arrayStatus.find( element => element.theHub === data.status );
-        console.log('findStatus', findStatus)
-        const codeStatusMultivende = findStatus.multivende
-
-        const token = await TOKEN_OAUTH({
-            client_id: process.env.CLIENT_ID,
-            client_secret: process.env.CLIENT_SECRET,
-            type: 2
-        })
-
-        if (token.status == 200) {
-            const auth = token.data.token
-            const statusData = await apis.GET_ORDER_STATUS_MULTIVENDE({auth})
+        
+        const query = { theHub: data.status }
+        const statusMongo = await clienteMongo.GET_ONE('listStatus', query)
+        if (statusMongo.response) {
+            const codeStatusMultivende = statusMongo.data.multivende
+            const token = await TOKEN_OAUTH({
+                client_id: process.env.CLIENT_ID,
+                client_secret: process.env.CLIENT_SECRET,
+                type: 2
+            })
     
-            if(statusData.status == 200) {
-                const arrayStatusMult = statusData.data.entries
-                const findStatusMult = arrayStatusMult.find( e => e.code === codeStatusMultivende );
-
-                const input = {
-                    orderID: data.orderID,
-                    updateDate: moment().format('DD-MM-YYYY'),
-                    statusID: findStatusMult._id,
-                    comment: data.comment,
-                    auth
+            if (token.status == 200) {
+                const auth = token.data.token
+                const statusData = await apis.GET_ORDER_STATUS_MULTIVENDE({auth})
+        
+                if(statusData.status == 200) {
+                    const arrayStatusMult = statusData.data.entries
+                    const findStatusMult = arrayStatusMult.find( e => e.code === codeStatusMultivende );
+    
+                    const input = {
+                        orderID: data.orderID,
+                        updateDate: moment().utc().format(),
+                        statusID: findStatusMult._id,
+                        comment: data.comment,
+                        auth
+                    }
+    
+                    const rpta = await apis.UPDATE_ORDER_STATUS_VENDEMAS(input)
+                    return rpta
+                } else {
+                    return statusData
                 }
-
-                const rpta = await apis.UPDATE_ORDER_STATUS_VENDEMAS(input)
-                return rpta
             } else {
-                return statusData
+                return token
             }
         } else {
-            return token
+            return { status: 200, message:'Estado no definido'}
         }
     } catch (error) {
         console.log(error.message)
@@ -248,6 +267,7 @@ const UPDATE_STATUS = async (data) => {
 module.exports = {
     TOKEN_OAUTH,
     POLLING,
+    POLLING_DETAILS,
     PRODUCTS,
     UPDATE_STATUS
 }

@@ -2,6 +2,7 @@ const amqp = require("amqplib/callback_api");
 const { publishRabbitMq } = require('../../utils/rabbitmq')
 const clienteMongo = require('../database/mongo')
 const apis = require('../../utils/axios')
+const multivende = require('../helpers/functions/multivende')
 
 var esquema = 'orders'
 
@@ -22,80 +23,34 @@ const consumerOrderAdd = async () => {
                     const item = JSON.parse(msg.content.toString());
                     console.log('DeliveryOrderId: ',item.DeliveryOrderId);
 
+                    var OrderItems = []
+                    const arrayProd = item.CheckoutItems
+                    for (let i = 0; i < arrayProd.length; i++) {
+                        const SKU = arrayProd[i].ProductVersion.Product.code;
+                        const Quantity = arrayProd[i].count;
+                        const jsonProd = {
+                            SKU: SKU,
+                            Quantity: Quantity,
+                            WarehouseId: 3
+                        }
+                        OrderItems.push(jsonProd)
+                    }
                     var data = {
-                        "OrderItems": [
-                          {
-                            "SKU": "002-003-0006-gra050",
-                            "ProductId": 126,
-                            "Quantity": 12,
-                            "Details": "TEST - TEST",
-                            "UnitPrice": 0,
-                            "UnitPriceVat": 0,
-                            "Discount": 0,
-                            "OrderItemNameValues": [
-                              {
-                                "Name": "BUNDLE-ID",
-                                "Value": "3024;1;a34f4bf9-5666-4b01-a3b8-5e45acae7255"
-                              }
-                            ],
-                            "WarehouseId": 3,
-                            "RequestedSerialNo": ""
-                          }
-                        ],
-                        "OrderNameValues": [
-                          {
-                            "OrderId": 1283,
-                            "Name": "SourceCourierServiceName",
-                            "Value": "dokan_table_rate_shipping:Tabla de Tarifas",
-                            "ID": 811,
-                            "LastUpdated": "2022-03-19T23:15:46.8858258",
-                            "LastUpdatedByUser": "SYSTEM-WOOCOMMERCE"
-                          }
-                        ],
-                        "OrderNumber": item.DeliveryOrderId,
-                        "ExternalOrderReference": "",
-                        "Title": "",
-                        "CompanyName": "",
-                        "FirstName": "MIguel Angel TEST",
-                        "LastName": "Rdriguez TEST",
+                        "OrderItems": OrderItems,
+                        "OrderNumber": "4553",
+                        "FirstName": item.name,
+                        "LastName": item.lastName,
                         "Address1": "Los Olivos -TEST",
-                        "Address2": "",
-                        "Address3": "",
                         "Town": "MAGDALENA DEL MAR",
                         "County": "LIMA",
                         "PostCode": ".",
                         "Country": "LIMA",
                         "CountryId": 399,
-                        "Email": "miguekos1233@gmail.com",
-                        "Phone": "965778450",
-                        "Mobile": "",
                         "CourierService": "Next cod",
-                        "CourierServiceTypeId": 10,
-                        "Channel": "TEST",
-                        "ChannelId": 13,
                         "Warehouse": "",
                         "WarehouseId": 3,
-                        "Currency": "",
-                        "CurrencyId": 27,
-                        "DeliveryDate": "2022-03-28T01:15:02.257Z",
-                        "DespatchDate": "2022-03-28T01:15:02.257Z",
-                        "RequiredDeliveryDate": "2022-03-28T01:15:02.257Z",
-                        "RequiredDespatchDate": "2022-03-28T01:15:02.257Z",
-                        "Comments": "TEST",
-                        "DeliveryNotes": "TEST",
-                        "GiftMessages": "TEST",
-                        "VATNumber": "string",
-                        "EORINumber": "string",
-                        "PIDNumber": "string",
-                        "IOSSNumber": "string",
-                        "OrderValue": 0,
-                        "ShippingTotalExVat": 0,
-                        "ShippingTotalVat": 0,
-                        "DiscountTotalExVat": 0,
-                        "DiscountTotalVat": 0,
-                        "TotalVat": 0,
-                        "ClientId": 5,
-                        "NumberOfParcels": 0
+                        "Comments": "TEST - TEST - TEST",
+                        "ClientId": 5
                     };
                     const order = await apis.ADD_ORDER(data)
                     console.log(order[0])
@@ -190,6 +145,16 @@ const consumerOrderStatus = async () => {
                         datailStatus: datailStatus
                     }
                     await publishRabbitMq('ex_order_mdb', '', JSON.stringify(jsonMDB))
+
+                    const deliveryID = item.DeliveryOrderInCheckouts[0].DeliveryOrder._id
+
+                    const jsonUpdStatus = { 
+                        orderID: deliveryID, 
+                        status: datailStatus.ExternalName, 
+                        comment: datailStatus.ExternalName
+                    }
+                    const update = await multivende.UPDATE_STATUS(jsonUpdStatus)
+                    console.log(update)
                     ch.ack(msg);
                 } catch (error) {
                     console.log("Error de cola: ", error.message);

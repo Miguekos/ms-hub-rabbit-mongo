@@ -323,13 +323,14 @@ exports.UPDATE_ORDER_STATUS_VENDEMAS = async v => {
                 'Content-Type': 'application/json'
             },
             headers: { Authorization: `Bearer ${v.auth}` },
-            "data-raw": input
+            data: input
         })
         .then(async function (response) {
             console.log('STATUS:',response.status)
             output = { status: response.status, data: response.data }
         })
         .catch(async function (error) {
+            console.log(error.message)
             var statusText
             var status
             if (error.response) {// La respuesta fue hecha y el servidor respondió con un código de estado

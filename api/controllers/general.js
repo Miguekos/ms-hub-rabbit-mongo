@@ -14,7 +14,8 @@ const notify = async (req, res = response) => {
         const notifyJson = req.body
         var notify;
         const typeProcess = 
-            notifyJson.DeliveryOrderId ? 1 : // ORDER
+            notifyJson.CheckoutId ? 1 : // ORDER
+            //notifyJson.DeliveryOrderId ? 1 : // ORDER
             notifyJson.ProductId ? 2 : // PRODUCT
             null; // NINGUNO
         console.log('Tipo de proceso:',typeProcess)

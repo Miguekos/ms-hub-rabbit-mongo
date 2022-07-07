@@ -171,3 +171,22 @@ exports.GET_ONE_LATEST_TIME = async (esquema, query) => {
       return {codRes: '99', message: error.message}
     }
   };
+
+  exports.GET_NEXT_SEQUENCE = async (name, esquemaSequence) => {
+    try {
+      console.log("GET_NEXT_SEQUENCE");
+      const client = await MongoClient.connect(conexionMongo, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+      });
+      const db = client.db(`${process.env.DB}`);
+      const collection = db.collection(esquemaSequence);
+      const ret = await collection.findOneAndUpdate({ _id: name }, { $inc: { seq: 1 } });
+      console.log("retornar_:", ret.value.seq);
+      client.close();
+      return ret.value.seq;
+    } catch (error) {
+      console.log(error.message);
+      return false;
+    }
+  };
