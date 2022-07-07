@@ -64,7 +64,7 @@ const consumerOrderAdd = async () => {
                         "CourierService": "Next cod",
                         "Warehouse": "",
                         "WarehouseId": 3,
-                        "Comments": "TEST - TEST - TEST",
+                        "Comments": item.comment,
                         "ClientId": 5
                     };
                     console.log('DATA PARA INSERTAR: ', data)
