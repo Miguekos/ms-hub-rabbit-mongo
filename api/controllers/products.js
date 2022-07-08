@@ -1,33 +1,36 @@
 const clienteMongo = require('../database/mongo')
 const dotenv = require("dotenv");
 const apis = require('../../utils/axios')
+const multivende = require("../helpers/functions/multivende")
+
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 const newProduct = async (data) => {
     try {
         console.log('New Product')
         var esquema = 'products'
-
+        const detailProd = await multivende.DETAIL_PRODUCT(data)
         var inputAdd = {
-            "SKU": "MY-TSHIRT-RED-SM-TEST",
-            "ClientId": data.ProductId,
-            "Name": "MY TSHIRT RED SMALL - TEST",
-            "CustomsDescription": "Cotton Tshirt TEST",
-            "EAN": "3546433",
-            "UPC": "643636346",
+            "SKU": detailProd.data.code,
+            "ClientId": 3,
+            "Name": detailProd.data.name,
+            "CustomsDescription": detailProd.data.description,
+            "EAN": "3547001",
+            "UPC": "643636348",
             "LowStockAlertLevel": 20,
-            "Weight": 1,
-            "Height": 40,
-            "Width": 20,
+            "Weight": detailProd.data.ProductVersions[0].weight,
+            "Height": detailProd.data.ProductVersions[0].height,
+            "Width": detailProd.data.ProductVersions[0].width,
             "Depth": 1,
-            "ImageURL": "https://cdn.shopify.com/s/files/1/0263/3007/1119/products/rosamesanueva.jpg?v=1634672333"
+            "ImageURL": detailProd.data.url
         };
 
+        console.log(inputAdd)
         const product = await apis.ADD_PRODUCT(inputAdd)
         console.log(product)
         console.log('Rpta ProductId:', product.ProductId)
 
-        const mdb = await clienteMongo.INSERT_ONE(esquema, {inProductId: data.ProductId, ...data, ...inputAdd, ...product})
+        const mdb = await clienteMongo.INSERT_ONE(esquema, { ID: data.ProductId, ...data, inputTheHub: inputAdd, addTheHub: product})
         console.log('MDB:',mdb)
 
         if (mdb.status == false) {
