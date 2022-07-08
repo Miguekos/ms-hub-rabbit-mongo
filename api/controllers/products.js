@@ -1,3 +1,4 @@
+const moment = require("moment");
 const clienteMongo = require('../database/mongo')
 const dotenv = require("dotenv");
 const apis = require('../../utils/axios')
@@ -9,14 +10,29 @@ const newProduct = async (data) => {
     try {
         console.log('New Product')
         var esquema = 'products'
+
+        // VERIFICAR SECUENCIAL
+        const year = moment().format("YYYY");
+        const _idSeq = `${year}_product_multivende`;
+        const collectionSeq = 'sequence'
+        const secuencial = await clienteMongo.GET_ONE(collectionSeq, { _id: _idSeq });
+        console.log(JSON.stringify(secuencial));
+        if (secuencial.response === false) {
+        const jsonSeq = { _id: _idSeq, detail: `Sequence ${year} de products multivende`, seq: 1 };
+        const seq = await clienteMongo.INSERT_ONE(collectionSeq, jsonSeq);
+        }
+        const sequence = await clienteMongo.GET_NEXT_SEQUENCE(_idSeq, collectionSeq);
+        console.log('sequence:',sequence)
+
+
         const detailProd = await multivende.DETAIL_PRODUCT(data)
         var inputAdd = {
             "SKU": detailProd.data.code,
             "ClientId": 3,
             "Name": detailProd.data.name,
             "CustomsDescription": detailProd.data.description,
-            "EAN": "3547001",
-            "UPC": "643636348",
+            "EAN": sequence, //"3547001",
+            "UPC": sequence, //"643636348",
             "LowStockAlertLevel": 20,
             "Weight": detailProd.data.ProductVersions[0].weight,
             "Height": detailProd.data.ProductVersions[0].height,

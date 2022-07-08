@@ -52,7 +52,7 @@ const consumerOrderAdd = async () => {
                     }
                     var data = {
                         "OrderItems": OrderItems,
-                        "OrderNumber": sequence,
+                        "OrderNumber": item._id,
                         "FirstName": item.Client.name,
                         "LastName": item.Client.lastName,
                         "Address1": "Los Olivos -TEST",
