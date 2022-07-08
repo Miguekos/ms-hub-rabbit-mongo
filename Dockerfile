@@ -1,4 +1,4 @@
-FROM node:14-slim
+FROM node:12-slim
 
 WORKDIR /usr/local/nodeapps
 
@@ -12,4 +12,5 @@ RUN pm2 set pm2-logrotate:dateFormat 'YYYY-MM-DD'
 
 COPY [".", "/usr/local/nodeapps/"]
 
-EXPOSE 3349
+EXPOSE 3346
+EXPOSE 3000
