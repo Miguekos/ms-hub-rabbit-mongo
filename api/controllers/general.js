@@ -87,7 +87,7 @@ const polling = async (req, res) => {
 const pollingProducts = async (req, res) => {
     try {
         console.log('pollingProducts')
-        const polling = await multivende.PRODUCTS()
+        const polling = await multivende.ALL_PRODUCTS()
         res.status(polling.status).json(polling);
     } catch (error) {
         console.log(error.message)

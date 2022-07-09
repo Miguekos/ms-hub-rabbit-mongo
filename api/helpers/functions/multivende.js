@@ -169,62 +169,6 @@ const POLLING_DETAILS = async (json) => {
     }
 }
 
-const PRODUCTS = async () => {
-    try {
-        console.log('PRODUCTS')
-        var rptaProd = { status: 500}
-        const token = await TOKEN_OAUTH({
-            client_id: process.env.CLIENT_ID,
-            client_secret: process.env.CLIENT_SECRET,
-            type: 2
-        })
-
-        
-        if (token.status == 200) {
-            const auth = token.data.token
-            console.log(auth)
-            var totalPage = 0
-            var j = 1
-
-            do {
-                const inputProd = {
-                    auth,
-                    page: j
-                }
-                rptaProd = await apis.GET_PRODUCTS(inputProd)
-                
-                if(rptaProd.status == 200) {
-                    const arrayProd = rptaProd.data.entries
-                    totalPage = rptaProd.data.pagination.total_pages
-                    if (JSON.stringify(arrayProd) != '[]') {
-                        console.log(arrayProd.length)
-                        for (let i = 0; i < arrayProd.length; i++) {
-                            const element = arrayProd[i];
-                            console.log(element._id)
-                            const query = {
-                                _id:element._id
-                            }
-                            const ventaPolling = await clienteMongo.GET_ONE('productDetail', query)
-                            if(ventaPolling.response == false) { // Data Nueva
-                                const mdb = await clienteMongo.INSERT_ONE('productDetail', element)
-                                console.log(mdb)
-                                
-                            }
-                        }
-                    }
-                }
-                j = j + 1;
-            } while (j <= totalPage && totalPage != 0);
-            return rptaProd
-        } else {
-            return token
-        }
-
-    } catch (error) {
-        
-    }
-}
-
 const UPDATE_STATUS = async (data) => {
     try {
         console.log('UPDATE_STATUS')
@@ -273,10 +217,112 @@ const UPDATE_STATUS = async (data) => {
     }
 }
 
+const ALL_PRODUCTS = async () => {
+    try {
+        console.log('ALL_PRODUCTS')
+        var rptaProd = { status: 500}
+        const token = await TOKEN_OAUTH({
+            client_id: process.env.CLIENT_ID,
+            client_secret: process.env.CLIENT_SECRET,
+            type: 2
+        })
+
+        
+        if (token.status == 200) {
+            const auth = token.data.token
+            console.log(auth)
+            var totalPage = 0
+            var j = 1
+
+            do {
+                const inputProd = {
+                    auth,
+                    page: j
+                }
+                rptaProd = await apis.GET_ALL_PRODUCTS(inputProd)
+                
+                if(rptaProd.status == 200) {
+                    const arrayProd = rptaProd.data.entries
+                    totalPage = rptaProd.data.pagination.total_pages
+                    if (JSON.stringify(arrayProd) != '[]') {
+                        console.log(arrayProd.length)
+                        for (let i = 0; i < arrayProd.length; i++) {
+                            const element = arrayProd[i];
+                            console.log(element._id)
+                            const query = {
+                                _id:element._id
+                            }
+                            const ventaPolling = await clienteMongo.GET_ONE('productDetail', query)
+                            if(ventaPolling.response == false) { // Data Nueva
+                                const mdb = await clienteMongo.INSERT_ONE('productDetail', element)
+                                console.log(mdb)
+                                
+                            }
+                        }
+                    }
+                }
+                j = j + 1;
+            } while (j <= totalPage && totalPage != 0);
+            return rptaProd
+        } else {
+            return token
+        }
+
+    } catch (error) {
+        console.log(error.message)
+        output = { status: 500, message: error.message }
+        return output
+    }
+}
+
+const DETAIL_PRODUCT = async (data) => {
+    try {
+        console.log('DETAIL_PRODUCT')
+        const token = await TOKEN_OAUTH({
+            client_id: process.env.CLIENT_ID,
+            client_secret: process.env.CLIENT_SECRET,
+            type: 2
+        })
+        if (token.status == 200) {
+            const auth = token.data.token
+
+            const inputProd = {
+                auth,
+                productId: data.ProductId
+            }
+            rptaProd = await apis.GET_PRODUCT(inputProd)
+            if (rptaProd.status == 200) {
+                rptaImageProd = await apis.GET_PRODUCT_IMAGE(inputProd)
+                var url = ""
+                if (rptaImageProd.status == 200) {
+                    if (JSON.stringify(rptaImageProd.data) !== '[]') {
+                        url = rptaImageProd.data[0].url
+                    } 
+                }
+                console.log('URL:',url)
+                const jsonDetail = {
+                    url,
+                    ...rptaProd.data
+                }
+                return { status : 200, data: jsonDetail }
+            } else {
+                return rptaProd
+            }
+        } else {
+            return token
+        }
+    } catch (error) {
+        console.log(error.message)
+        output = { status: 500, message: error.message }
+        return output
+    }
+}
+
 module.exports = {
     TOKEN_OAUTH,
     POLLING,
     POLLING_DETAILS,
-    PRODUCTS,
-    UPDATE_STATUS
+    UPDATE_STATUS,
+    ALL_PRODUCTS,
+    DETAIL_PRODUCT
 }
