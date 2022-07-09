@@ -61,6 +61,7 @@ const consumerOrderAdd = async () => {
                         "PostCode": ".",
                         "Country": "LIMA",
                         "CountryId": 399,
+                        "ChannelId": 13,
                         "CourierService": "Next cod",
                         "Warehouse": "",
                         "WarehouseId": 3,
