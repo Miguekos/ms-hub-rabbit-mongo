@@ -7,4 +7,4 @@ namespace: hub-dev
 images:
 - name: ms-hub-rabbit-mongo
   newName: miguekos1233/ms-hub-rabbit-mongo
-  newTag: 7190791aed073801a1327a8034886e2a7e4bb8d4
+  newTag: d7438dbef82ac39f77c9604c6b485f76234a031a
