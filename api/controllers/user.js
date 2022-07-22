@@ -8,7 +8,7 @@ dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 exports.getAllUser = async (req, res, next) => {
     try {
-        const getAllUser = await clienteMongo.GET_ALL('users', {}, { pass: 0 })
+        const getAllUser = await clienteMongo.GET_ALL_FILTER('users', {}, { pass: 0 })
         // console.log('getAllUser', getAllUser);
         return res.status(200).json({
             data: getAllUser,

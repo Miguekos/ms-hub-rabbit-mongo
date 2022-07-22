@@ -69,7 +69,7 @@ exports.INSERT_ONE = async (esquema, data) => {
         return result.insertedId;
     } catch (error) {
         console.log(error.message);
-        return {status: false, message: error.message};
+        return { status: false, message: error.message };
     }
 };
 
@@ -84,12 +84,12 @@ exports.GET_ONE = async (esquema, query) => {
         const collection = db.collection(esquema);
         const result = await collection.findOne(query);
         // console.log(result);
-        const output = { response: result ? true: false, data: result };
+        const output = { response: result ? true : false, data: result };
         client.close();
         return output;
     } catch (error) {
         console.log(error.message);
-        throw {response: false, message: error.message};
+        throw { response: false, message: error.message };
     }
 };
 
@@ -107,7 +107,7 @@ exports.GET_ALL = async (esquema, query) => {
         return result;
     } catch (error) {
         console.log(error.message);
-        return {status: false, message: error.message};
+        return { status: false, message: error.message };
     }
 };
 
@@ -125,7 +125,7 @@ exports.DEL = async (esquema, query) => {
         return result;
     } catch (error) {
         console.log(error.message);
-        return {status: false, message: error.message};
+        return { status: false, message: error.message };
     }
 };
 
@@ -145,7 +145,7 @@ exports.GET_LOGS = async (esquema) => {
         return result;
     } catch (error) {
         console.log(error.message);
-        return {status: false, message: error.message};
+        return { status: false, message: error.message };
     }
 };
 
@@ -159,34 +159,74 @@ exports.GET_ONE_LATEST_TIME = async (esquema, query) => {
 
         const db = client.db(`${process.env.DB}`);
         const collection = db.collection(esquema);
-      const  result  = await collection.find(query).sort({
-        $natural : -1
-      }).limit(1).toArray();
-      //const result = { codRes: JSON.stringify(result) == '[]' ? "01" : "00", data: JSON.stringify(result) == '[]' ? result:result[0] };
-      //console.log(result)
-      // console.log(result[0]);
-      return result;
+        const result = await collection.find(query).sort({
+            $natural: -1
+        }).limit(1).toArray();
+        //const result = { codRes: JSON.stringify(result) == '[]' ? "01" : "00", data: JSON.stringify(result) == '[]' ? result:result[0] };
+        //console.log(result)
+        // console.log(result[0]);
+        return result;
     } catch (error) {
-      console.log(error.message);
-      return {codRes: '99', message: error.message}
+        console.log(error.message);
+        return { codRes: '99', message: error.message }
     }
-  };
+};
 
-  exports.GET_NEXT_SEQUENCE = async (name, esquemaSequence) => {
+exports.GET_NEXT_SEQUENCE = async (name, esquemaSequence) => {
     try {
-      console.log("GET_NEXT_SEQUENCE");
-      const client = await mongoClient.connect(conexionMongo, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-      });
-      const db = client.db(`${process.env.DB}`);
-      const collection = db.collection(esquemaSequence);
-      const ret = await collection.findOneAndUpdate({ _id: name }, { $inc: { seq: 1 } });
-      console.log("retornar_:", ret.value.seq);
-      client.close();
-      return ret.value.seq;
+        console.log("GET_NEXT_SEQUENCE");
+        const client = await mongoClient.connect(conexionMongo, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
+        const db = client.db(`${process.env.DB}`);
+        const collection = db.collection(esquemaSequence);
+        const ret = await collection.findOneAndUpdate({ _id: name }, { $inc: { seq: 1 } });
+        console.log("retornar_:", ret.value.seq);
+        client.close();
+        return ret.value.seq;
     } catch (error) {
-      console.log(error.message);
-      return false;
+        console.log(error.message);
+        return false;
     }
-  };
+};
+
+exports.GET_BY_ID = async (esquema, id, projection) => {
+    try {
+        const client = await mongoClient.connect(conexionMongo, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+        // console.log('query ', query);
+        const db = client.db(`${process.env.DB}`);
+        const collection = db.collection(esquema);
+        const result = await collection.find({ _id: ObjectId(id) }).project(projection).toArray();
+        // console.log(result);
+        const output = { codRes: result ? '00' : '01', ...result };
+        client.close();
+        return result[0];
+    } catch (error) {
+        console.log(error.message);
+        return { status: false, message: error.message };
+    }
+};
+
+
+exports.GET_ALL_FILTER = async (esquema, query, projection) => {
+    try {
+        const client = await mongoClient.connect(conexionMongo, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+        // console.log('query ', query);
+        const db = client.db(`${process.env.DB}`);
+        const collection = db.collection(esquema);
+        const result = await collection.find(query).project(projection).toArray();
+        console.log("🚀 ~ file: mongo.js ~ line 225 ~ exports.GET_ALL_FILTER= ~ result", result)
+        client.close();
+        return result;
+    } catch (error) {
+        console.log(error.message);
+        return { status: false, message: error.message };
+    }
+};

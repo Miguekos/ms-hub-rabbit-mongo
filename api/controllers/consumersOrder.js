@@ -208,12 +208,12 @@ const consumerOrderStatus = async () => {
             const order = await apis.GET_ORDER(item.OrderId);
             const IDstatus = order.OrderStatusId ? order.OrderStatusId : 0;
             console.log('New IDstatus', IDstatus);
-            const dateilStatus = await apis.GET_DETAIL_STATUS(IDstatus);
-            console.log(dateilStatus);
+            const deteilStatus = await apis.GET_DETAIL_STATUS(IDstatus);
+            console.log(deteilStatus);
             const jsonMDB = {
               ...item,
               OrderStatusId: IDstatus,
-              dateilStatus: dateilStatus,
+              deteilStatus: deteilStatus,
             };
             await publishRabbitMq('ex_order_mdb', '', JSON.stringify(jsonMDB));
 
@@ -223,8 +223,8 @@ const consumerOrderStatus = async () => {
 
             const jsonUpdStatus = {
               orderID: deliveryID,
-              status: dateilStatus.ExternalName,
-              comment: dateilStatus.ExternalName,
+              status: deteilStatus.ExternalName,
+              comment: deteilStatus.ExternalName,
             };
             const update = await multivende.UPDATE_STATUS(jsonUpdStatus);
             console.log(update);
