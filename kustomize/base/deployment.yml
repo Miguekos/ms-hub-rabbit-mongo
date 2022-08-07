@@ -18,37 +18,44 @@ spec:
       containers:
         - name: ms-hub-rabbit-mongo
           image: ms-hub-rabbit-mongo
-          command: ["pm2-runtime"]
-          args: ["server.config.js", "--env", "production"]
+          command: ['pm2-runtime']
+          args: ['server.config.js', '--env', 'production']
+          resources:
+            requests:
+              cpu: '100m'
+              memory: 128Mi
+            limits:
+              cpu: '200m'
+              memory: 256Mi
           env:
             - name: PORT
-              value: "3349"
+              value: '3349'
             - name: NODEJS_IP
-              value: "0.0.0.0"
+              value: '0.0.0.0'
             - name: VERSION
-              value: "v1.0"
+              value: 'v1.0'
             - name: IP_MONGO
-              value: "mongodb://95.111.235.214:32768"
+              value: 'mongodb://95.111.235.214:32768'
             - name: DB
-              value: "hub_dev"
+              value: 'hub_dev'
             - name: AMQP
-              value: "amqp://guest:guest@207.244.228.209:30301"
+              value: 'amqp://guest:guest@207.244.228.209:30301'
             - name: TOKEN_HEADER_KEY
-              value: "token"
+              value: 'token'
             - name: JWT_SECRET_KEY
-              value: "17744433494210179015"
+              value: '17744433494210179015'
             - name: IP_THEHUB
-              value: "https://api.mintsoft.co.uk"
+              value: 'https://api.mintsoft.co.uk'
             - name: APIKEY_THEHUB
-              value: "fb878038-58a1-47da-953a-29d750fe1f9b"
+              value: 'fb878038-58a1-47da-953a-29d750fe1f9b'
             - name: IP_MULTIVENDE
-              value: "https://app.multivende.com"
+              value: 'https://app.multivende.com'
             - name: CLIENT_ID
-              value: "585956977825"
+              value: '585956977825'
             - name: CLIENT_SECRET
-              value: "LXDKAfFzh7cIUUkBL4LtAYSZM8nweAgnDLJekK2zZdr2BavODC"
+              value: 'LXDKAfFzh7cIUUkBL4LtAYSZM8nweAgnDLJekK2zZdr2BavODC'
             - name: MERCHANT_ID
-              value: "d70308c6-0e76-46d8-9d02-5d55a7706f71"
-            
+              value: 'd70308c6-0e76-46d8-9d02-5d55a7706f71'
+
           ports:
             - containerPort: 3349
