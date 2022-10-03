@@ -6,7 +6,6 @@ metadata:
   labels:
     app: ms-hub-app
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: ms-hub
@@ -25,7 +24,7 @@ spec:
               cpu: '100m'
               memory: 128Mi
             limits:
-              cpu: '200m'
+              cpu: '100m'
               memory: 256Mi
           env:
             - name: PORT
